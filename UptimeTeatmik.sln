@@ -1,0 +1,46 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeTeatmik.Api", "UptimeTeatmik.Api\UptimeTeatmik.Api.csproj", "{D4366677-D4B5-4033-9573-14D6469A92D7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeTeatmik.Application", "UptimeTeatmik.Application\UptimeTeatmik.Application.csproj", "{6BB501D3-67D6-4809-A192-6844389C343C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeTeatmik.Contracts", "UptimeTeatmik.Contracts\UptimeTeatmik.Contracts.csproj", "{89E9DCFE-FA38-4D64-A984-2591720B1662}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeTeatmik.Domain", "UptimeTeatmik.Domain\UptimeTeatmik.Domain.csproj", "{AC63DC40-9096-480A-BA2C-A681265AFA9A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UptimeTeatmik.Infrastructure", "UptimeTeatmik.Infrastructure\UptimeTeatmik.Infrastructure.csproj", "{7B53A8B0-05A6-4C55-85FC-B541774583A7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D4366677-D4B5-4033-9573-14D6469A92D7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4366677-D4B5-4033-9573-14D6469A92D7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4366677-D4B5-4033-9573-14D6469A92D7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4366677-D4B5-4033-9573-14D6469A92D7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6BB501D3-67D6-4809-A192-6844389C343C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6BB501D3-67D6-4809-A192-6844389C343C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6BB501D3-67D6-4809-A192-6844389C343C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6BB501D3-67D6-4809-A192-6844389C343C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89E9DCFE-FA38-4D64-A984-2591720B1662}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89E9DCFE-FA38-4D64-A984-2591720B1662}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89E9DCFE-FA38-4D64-A984-2591720B1662}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89E9DCFE-FA38-4D64-A984-2591720B1662}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AC63DC40-9096-480A-BA2C-A681265AFA9A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC63DC40-9096-480A-BA2C-A681265AFA9A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC63DC40-9096-480A-BA2C-A681265AFA9A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC63DC40-9096-480A-BA2C-A681265AFA9A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7B53A8B0-05A6-4C55-85FC-B541774583A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7B53A8B0-05A6-4C55-85FC-B541774583A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7B53A8B0-05A6-4C55-85FC-B541774583A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7B53A8B0-05A6-4C55-85FC-B541774583A7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
