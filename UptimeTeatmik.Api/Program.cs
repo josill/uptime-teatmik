@@ -3,6 +3,7 @@ using Hangfire.Dashboard.BasicAuthorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using UptimeTeatmik.Api.Controllers;
 using UptimeTeatmik.Application;
+using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -46,6 +47,10 @@ var app = builder.Build();
             })
         }
     });
+    RecurringJob.AddOrUpdate<IBusinessRegisterService>(
+        "daily-business-update",
+        job => job.RunBusinessUpdateJob(),
+        Cron.Daily);
     
     app.UseHttpsRedirection();
     app.MapControllers();

@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UptimeTeatmik.Application.Common;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Domain;
@@ -13,6 +12,12 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
 public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpClient, IOptions<BusinessRegisterSettings> settings, IBusinessRegisterBodyGenerator businessRegisterBodyGenerator) : IBusinessRegisterService
 {
+    public async Task RunBusinessUpdateJob()
+    {
+        var dateNow = DateTime.Now;
+        await FetchUpdatedBusinessCodesAsync(dateNow);
+    }
+    
     public async Task<List<string>> FetchUpdatedBusinessCodesAsync(DateTime date)
     {
         var body = businessRegisterBodyGenerator.GenerateChangesUrlXmlBody(date);
@@ -45,8 +50,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             {
                 Console.WriteLine($"Failed to update business with code {businessCode} with exception: {ex}");
             }
-            
-            break;
         }
     }
 
@@ -61,7 +64,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             // TODO: Correctly handle the error
             if (businessName == null) throw new InvalidOperationException("Error parsing business name");
             
-            // TODO: update business
             var updatedBusiness = await dbContext.Businesses
                 .Where(b => b.BusinessCode == businessCode)
                 .FirstOrDefaultAsync();
