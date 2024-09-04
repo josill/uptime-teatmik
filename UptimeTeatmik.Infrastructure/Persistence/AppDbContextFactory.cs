@@ -8,23 +8,30 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)
     {
+        var assemblyDirectory = Path.GetDirectoryName(typeof(AppDbContextFactory).Assembly.Location);
+        var solutionDirectory = Directory.GetParent(assemblyDirectory)?.Parent?.Parent?.Parent?.FullName;
+        var appsettingsPath = Path.Combine(solutionDirectory, "UptimeTeatmik.Api", "appsettings.json");
+        var appsettingsDevelopmentPath = Path.Combine(solutionDirectory, "UptimeTeatmik.Api", "appsettings.Development.json");
+
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetParent(Directory.GetCurrentDirectory())?.FullName ?? throw new InvalidOperationException("appsettings.json file path is invalid in AppDbContextFactory.cs setup"))
-            .AddJsonFile("UptimeTeatmik.Api/appsettings.json")
+            .SetBasePath(solutionDirectory)
+            .AddJsonFile(appsettingsPath, optional: false)
+            .AddJsonFile(appsettingsDevelopmentPath, optional: true)
             .AddEnvironmentVariables()
             .Build();
         
         var persistenceSettings = new PersistenceSettings();
-        configuration.GetSection(PersistenceSettings.SectionName).Bind(persistenceSettings);
-
-        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? "localhost";
-        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? "5432";
-        var username = Environment.GetEnvironmentVariable("DB_USER") ?? "default_user";
-        var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? "default_password";
-        var database = Environment.GetEnvironmentVariable("DB_NAME") ?? "default_database";
+        configuration.Bind(PersistenceSettings.SectionName, persistenceSettings);
+        
+        Console.WriteLine(persistenceSettings);
+        
+        var host = Environment.GetEnvironmentVariable("DB_HOST") ?? persistenceSettings.Host;
+        var port = Environment.GetEnvironmentVariable("DB_PORT") ?? persistenceSettings.Port.ToString();
+        var username = Environment.GetEnvironmentVariable("DB_USER") ?? persistenceSettings.Username;
+        var password = Environment.GetEnvironmentVariable("DB_PASSWORD") ?? persistenceSettings.Password;
+        var database = Environment.GetEnvironmentVariable("DB_NAME") ?? persistenceSettings.Database;
 
         var connectionString = $"Host={host};Port={port};Username={username};Password={password};Database={database}";
-   
         
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseNpgsql<AppDbContext>(connectionString);
