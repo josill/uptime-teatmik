@@ -22,4 +22,8 @@
     <ProjectReference Include="..\UptimeTeatmik.Infrastructure\UptimeTeatmik.Infrastructure.csproj" />
   </ItemGroup>
 
+  <Target Name="UpdateAppSettings" BeforeTargets="Build">
+    <Exec Command="bash $(MSBuildProjectDirectory)/../launchsettings.sh --settings $(MSBuildProjectDirectory)/appsettings.json --env $(MSBuildProjectDirectory)/../.env --environment $(Configuration)" />
+  </Target>
+
 </Project>
