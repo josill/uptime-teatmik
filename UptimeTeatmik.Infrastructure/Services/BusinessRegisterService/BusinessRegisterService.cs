@@ -84,10 +84,8 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
         try
         {
-            var jsonObject = JsonConvert.DeserializeObject(responseContent);
-            var formattedJson = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
-            var jObject = JObject.Parse(responseContent);
-            var businessName = jObject["keha"]?["ettevotjad"]?["item"]?[0]?["nimi"].ToString();
+            var formattedJson = ParseBusinessFormattedJson(responseContent);
+            var businessName = ParseBusinessName(responseContent);
             // TODO: Correctly handle the error
             if (businessName == null) throw new InvalidOperationException("Error parsing business name");
             
@@ -131,5 +129,21 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         
         var responseContent = await response.Content.ReadAsStringAsync();
         return responseContent;
+    }
+
+    private static string? ParseBusinessName(string responseContent)
+    {
+        var jObject = JObject.Parse(responseContent);
+        var businessName = jObject["keha"]?["ettevotjad"]?["item"]?[0]?["nimi"].ToString();
+
+        return businessName;
+    }
+
+    private static string ParseBusinessFormattedJson(string responseContent)
+    {
+        var jsonObject = JsonConvert.DeserializeObject(responseContent);
+        var formattedJson = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
+
+        return formattedJson;
     }
 }

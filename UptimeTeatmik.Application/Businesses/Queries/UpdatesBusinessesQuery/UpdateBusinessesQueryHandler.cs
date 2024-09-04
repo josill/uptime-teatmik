@@ -1,6 +1,5 @@
 using ErrorOr;
 using MediatR;
-using UptimeTeatmik.Application.Common;
 using UptimeTeatmik.Application.Common.Interfaces;
 
 namespace UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinessesQuery;
