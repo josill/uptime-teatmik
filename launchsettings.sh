@@ -46,7 +46,8 @@ jq --arg host "$DB_HOST" \
    --arg database "$DB_NAME" \
    --arg br_username "$BR_USERNAME" \
    --arg br_password "$BR_PASSWORD" \
-   --arg br_url "$BR_CHANGES_URL" \
+   --arg br_changes_url "$BR_CHANGES_URL" \
+   --arg br_detail_data_url "$BR_DETAIL_DATA_URL" \
    '.DefaultConnection.Host = $host | 
     .DefaultConnection.Port = $port | 
     .DefaultConnection.Username = $username | 
@@ -54,7 +55,8 @@ jq --arg host "$DB_HOST" \
     .DefaultConnection.Database = $database |
     .BusinessRegisterSettings.Username = $br_username |
     .BusinessRegisterSettings.Password = $br_password |
-    .BusinessRegisterSettings.ChangesUrl = $br_url' \
+    .BusinessRegisterSettings.DetailDataUrl = $br_detail_data_url |
+    .BusinessRegisterSettings.ChangesUrl = $br_changes_url' \
    "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
 
 jq 'del(.DefaultConnection.Password) | del(.BusinessRegisterSettings.Password)' "$settings_file"
