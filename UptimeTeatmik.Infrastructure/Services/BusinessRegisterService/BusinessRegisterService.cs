@@ -27,15 +27,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 </prod:ettevotjaMuudatusedTasuline_v1>
             </soapenv:Body>
         </soapenv:Envelope>";
-        var content = new StringContent(body, Encoding.UTF8, "text/xml");
-        var response = await httpClient.PostAsync(settings.Value.ChangesUrl, content);
-
-        // TODO: Correctly handle the error
-        response.EnsureSuccessStatusCode();
-
-        var contentAsString = await response.Content.ReadAsStringAsync();
-        var doc = XDocument.Parse(contentAsString);
-
+        var responseContent = await GetXmlResponseContentAsync(body, settings.Value.ChangesUrl);
+        
+        var doc = XDocument.Parse(responseContent);
         var ns = "{http://arireg.x-road.eu/producer/}";
         List<string> businessCodes = [];
 
@@ -67,7 +61,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         }
     }
 
-    private async Task<Business?> UpdateBusinessAsync(string businessCode)
+    private async Task UpdateBusinessAsync(string businessCode)
     {
         var body = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
             <soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xro=""http://x-road.eu/xsd/xroad.xsd"" xmlns:iden=""http://x-road.eu/xsd/identifiers"" xmlns:prod=""http://arireg.x-road.eu/producer/"">
@@ -87,13 +81,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                  </prod:detailandmed_v2>
                 </soapenv:Body>
             </soapenv:Envelope>";
-        var content = new StringContent(body, Encoding.UTF8, "text/xml");
-        var response = await httpClient.PostAsync(settings.Value.DetailDataUrl, content);
-        
-        // TODO: Correctly handle the error
-        response.EnsureSuccessStatusCode();
-
-        var responseContent = await response.Content.ReadAsStringAsync();
+        var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
         try
         {
             var jsonObject = JsonConvert.DeserializeObject(responseContent);
@@ -104,34 +92,44 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             if (businessName == null) throw new InvalidOperationException("Error parsing business name");
             
             // TODO: update business
-            var updateBusiness = await dbContext.Businesses
+            var updatedBusiness = await dbContext.Businesses
                 .Where(b => b.BusinessCode == businessCode)
                 .FirstOrDefaultAsync();
-            if (updateBusiness != null)
+            if (updatedBusiness != null)
             {
-                updateBusiness.BusinessName = businessName;
-                updateBusiness.FormattedJson = formattedJson;
+                updatedBusiness.BusinessName = businessName;
+                updatedBusiness.FormattedJson = formattedJson;
+
+                dbContext.Businesses.Update(updatedBusiness);
             }
             else
             {
-                updateBusiness = new Business()
+                updatedBusiness = new Business()
                 {
                     BusinessId = Guid.NewGuid(),
                     BusinessCode = businessCode,
                     BusinessName = businessName,
                     FormattedJson = formattedJson
                 };
+                dbContext.Businesses.Add(updatedBusiness);
             }
 
-            dbContext.Businesses.Add(updateBusiness);
             await dbContext.SaveChangesAsync();
         }
         catch (JsonException)
         {
             // TODO: Correctly handle the error
         }
-
-        return null;
     }
+
+    private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
+    {
+        var content = new StringContent(body, Encoding.UTF8, "text/xml");
+        var response = await httpClient.PostAsync(endPointUrl, content);
         
+        response.EnsureSuccessStatusCode();
+        
+        var responseContent = await response.Content.ReadAsStringAsync();
+        return responseContent;
+    }
 }
