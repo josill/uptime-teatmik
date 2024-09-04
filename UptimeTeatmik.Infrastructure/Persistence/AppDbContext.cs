@@ -1,8 +1,9 @@
 using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Application.Common;
+using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Domain;
 
-namespace UptimeTeatmik.Infrastructure;
+namespace UptimeTeatmik.Infrastructure.Persistence;
 
 public class AppDbContext : DbContext, IAppDbContext
 {

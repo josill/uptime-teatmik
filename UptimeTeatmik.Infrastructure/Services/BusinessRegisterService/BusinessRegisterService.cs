@@ -12,7 +12,7 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
 public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpClient, IOptions<BusinessRegisterSettings> settings) : IBusinessRegisterService
 {
-    public async Task<List<string>> FetchUpdatedBusinessCodes(DateTime date)
+    public async Task<List<string>> FetchUpdatedBusinessCodesAsync(DateTime date)
     {
         var body = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
         <soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xro=""http://x-road.eu/xsd/xroad.xsd"" xmlns:iden=""http://x-road.eu/xsd/identifiers"" xmlns:prod=""http://arireg.x-road.eu/producer/"">
@@ -50,17 +50,24 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return businessCodes;
     }
 
-    public async Task UpdateBusinesses(List<string> businessesCodes)
+    public async Task UpdateBusinessesAsync(List<string> businessesCodes)
     {
-        foreach (var businessCodes in businessesCodes)
+        foreach (var businessCode in businessesCodes)
         {
-            var updatedBusiness = await UpdateBusiness(businessCodes);
-            Console.WriteLine(updatedBusiness);
+            try
+            {
+                await UpdateBusinessAsync(businessCode);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Failed to update business with code {businessCode} with exception: {ex}");
+            }
+            
             break;
         }
     }
 
-    private async Task<Business?> UpdateBusiness(string businessCode)
+    private async Task<Business?> UpdateBusinessAsync(string businessCode)
     {
         var body = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
             <soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xro=""http://x-road.eu/xsd/xroad.xsd"" xmlns:iden=""http://x-road.eu/xsd/identifiers"" xmlns:prod=""http://arireg.x-road.eu/producer/"">
@@ -97,28 +104,27 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             if (businessName == null) throw new InvalidOperationException("Error parsing business name");
             
             // TODO: update business
-            var existingBusinesses = await dbContext.Businesses
+            var updateBusiness = await dbContext.Businesses
                 .Where(b => b.BusinessCode == businessCode)
                 .FirstOrDefaultAsync();
-            if (existingBusinesses != null)
+            if (updateBusiness != null)
             {
-                existingBusinesses.BusinessName = businessName;
-                existingBusinesses.FormattedJson = formattedJson;
-
-                return existingBusinesses;
+                updateBusiness.BusinessName = businessName;
+                updateBusiness.FormattedJson = formattedJson;
             }
             else
             {
-                var newBusiness = new Business()
+                updateBusiness = new Business()
                 {
                     BusinessId = Guid.NewGuid(),
                     BusinessCode = businessCode,
                     BusinessName = businessName,
                     FormattedJson = formattedJson
                 };
-
-                return newBusiness;
             }
+
+            dbContext.Businesses.Add(updateBusiness);
+            await dbContext.SaveChangesAsync();
         }
         catch (JsonException)
         {

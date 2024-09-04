@@ -4,6 +4,6 @@ namespace UptimeTeatmik.Application.Common.Interfaces;
 
 public interface IBusinessRegisterService
 {
-    public Task<List<string>> FetchUpdatedBusinessCodes(DateTime date);
-    public Task UpdateBusinesses(List<string> businessCodes);
+    public Task<List<string>> FetchUpdatedBusinessCodesAsync(DateTime date);
+    public Task UpdateBusinessesAsync(List<string> businessCodes);
 }
