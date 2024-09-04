@@ -1,20 +1,17 @@
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Xml.Linq;
 using Microsoft.Extensions.Options;
 using UptimeTeatmik.Application.Common.Interfaces;
+using UptimeTeatmik.Domain;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
 public class BusinessRegisterService(HttpClient httpClient, IOptions<BusinessRegisterSettings> settings) : IBusinessRegisterService
 {
-    public async Task<List<string>> FetchUpdates(DateTime date)
+    public async Task<List<Business>> FetchUpdates(DateTime date)
     {
-        Console.WriteLine($"{date:yyyy-MM-dd}");
-        Console.WriteLine($"{date:yyyy-MM-dd}");
-        Console.WriteLine($"{date:yyyy-MM-dd}");
-        Console.WriteLine($"{date:yyyy-MM-dd}");
-        Console.WriteLine($"{date:yyyy-MM-dd}");
         var body = $@"<?xml version=""1.0"" encoding=""UTF-8""?>
         <soapenv:Envelope xmlns:soapenv=""http://schemas.xmlsoap.org/soap/envelope/"" xmlns:xro=""http://x-road.eu/xsd/xroad.xsd"" xmlns:iden=""http://x-road.eu/xsd/identifiers"" xmlns:prod=""http://arireg.x-road.eu/producer/"">
          <soapenv:Body>
@@ -33,10 +30,29 @@ public class BusinessRegisterService(HttpClient httpClient, IOptions<BusinessReg
         var content = new StringContent(body, Encoding.UTF8, "text/xml");
         var response = await httpClient.PostAsync(settings.Value.ChangesUrl, content);
 
-            Console.WriteLine($"Error: {response.StatusCode}");
-            Console.WriteLine(await response.Content.ReadAsStringAsync());
-            return new List<string>();
+        response.EnsureSuccessStatusCode();
 
-        return new List<string>();
+        var contentAsString = await response.Content.ReadAsStringAsync();
+        var doc = XDocument.Parse(contentAsString);
+
+        var ns = "{http://arireg.x-road.eu/producer/}";
+        List<Business> businesses = [];
+
+        foreach (var element in doc.Descendants(ns + "ettevotja_muudatused"))
+        {
+            var businessCode = element.Element(ns + "ariregistri_kood")?.Value;
+            var businessName = element.Element(ns + "arinimi")?.Value;
+
+            if (businessCode == null) continue;
+            var business = new Business()
+            {
+                BusinessId = Guid.NewGuid(),
+                BusinessName = businessName,
+                BusinessCode = businessCode
+            };
+            businesses.Add(business);
+        }
+        
+        return businesses;
     }
 }
