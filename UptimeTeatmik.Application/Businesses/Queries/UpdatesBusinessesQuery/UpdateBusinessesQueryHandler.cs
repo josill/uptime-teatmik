@@ -9,7 +9,8 @@ public class UpdateBusinessesQueryHandler(IAppDbContext dbContext, IBusinessRegi
 {
     public async Task<ErrorOr<List<UpdateBusinessesResult>>> Handle(UpdateBusinessesQuery query, CancellationToken cancellationToken)
     {
-        await businessRegisterService.FetchUpdates(query.Date);
+        var updatedBusinesses = await businessRegisterService.FetchUpdatedBusinessCodes(query.Date);
+        await businessRegisterService.UpdateBusinesses(updatedBusinesses);
         
         return new List<UpdateBusinessesResult>();
     }

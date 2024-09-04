@@ -100,7 +100,7 @@ public static class DependencyInjection
         var businessRegisterSettings = new BusinessRegisterSettings();
         builderConfiguration.Bind(BusinessRegisterSettings.SectionName, businessRegisterSettings);
         services.AddSingleton(Options.Create(businessRegisterSettings));
-        services.AddSingleton<IBusinessRegisterService, BusinessRegisterService>();
+        services.AddScoped<IBusinessRegisterService, BusinessRegisterService>();
 
         return services;
     }
