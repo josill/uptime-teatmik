@@ -28,11 +28,15 @@ namespace UptimeTeatmik.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BusinessCode")
-                        .HasColumnType("uuid");
+                    b.Property<string>("BusinessCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
-                    b.Property<Guid>("BusinessName")
-                        .HasColumnType("uuid");
+                    b.Property<string>("BusinessName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");

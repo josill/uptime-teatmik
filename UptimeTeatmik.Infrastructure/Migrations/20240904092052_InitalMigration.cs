@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace UptimeTeatmik.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class Init : Migration
+    public partial class InitalMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -16,8 +16,8 @@ namespace UptimeTeatmik.Infrastructure.Migrations
                 columns: table => new
                 {
                     BusinessId = table.Column<Guid>(type: "uuid", nullable: false),
-                    BusinessName = table.Column<Guid>(type: "uuid", nullable: false),
-                    BusinessCode = table.Column<Guid>(type: "uuid", nullable: false),
+                    BusinessName = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                    BusinessCode = table.Column<string>(type: "character varying(64)", maxLength: 64, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
                 },

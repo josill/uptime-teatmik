@@ -12,8 +12,8 @@ using UptimeTeatmik.Infrastructure;
 namespace UptimeTeatmik.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240902104658_Init")]
-    partial class Init
+    [Migration("20240904092052_InitalMigration")]
+    partial class InitalMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -31,11 +31,15 @@ namespace UptimeTeatmik.Infrastructure.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<Guid>("BusinessCode")
-                        .HasColumnType("uuid");
+                    b.Property<string>("BusinessCode")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
 
-                    b.Property<Guid>("BusinessName")
-                        .HasColumnType("uuid");
+                    b.Property<string>("BusinessName")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
