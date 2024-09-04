@@ -38,8 +38,6 @@ set -a
 source "$env_file"
 set +a
 
-# Debug: Print environment variables
-
 # Update appsettings.json or appsettings.Development.json using jq
 jq --arg host "$DB_HOST" \
    --arg port "$DB_PORT" \
@@ -59,5 +57,4 @@ jq --arg host "$DB_HOST" \
     .BusinessRegisterSettings.ChangesUrl = $br_url' \
    "$settings_file" > "${settings_file}.tmp" && mv "${settings_file}.tmp" "$settings_file"
 
-# Debug: Print the contents of the updated settings file (excluding passwords)
 jq 'del(.DefaultConnection.Password) | del(.BusinessRegisterSettings.Password)' "$settings_file"

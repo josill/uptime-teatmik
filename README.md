@@ -2,28 +2,16 @@
 
 ## Notes
 
-appsettings.json and appsettings.Development.json files are removed because of confidental information. Here are the templates to add them:
+appsettings.json and appsettings.Development.json are filled automatically using a bash script called launchsettings.sh in the root directory. For this to work we also need a .env file in the root directory with the following information:
 
-```json
-{
-  "Logging": {
-    "LogLevel": {
-      "Default": "Information",
-      "Microsoft.AspNetCore": "Warning"
-    }
-  },
-  "DefaultConnection": {
-    "Host": "localhost",
-    "Port": "5432",
-    "Username": "josill",
-    "Password": "uptime_teatmik",
-    "Database": "uptime-teatmik"
-  },
-  "BusinessRegisterSettings": {
-    "Username": "username_here",
-    "Password": "password_here",
-    "ChangesUrl": "https://ariregxmlv6.rik.ee/ettevotjaMuudatusedTasuline_v1" 
-  },
-  "AllowedHosts": "*"
-}
+```
+DB_HOST=
+DB_PORT=
+DB_USERNAME=
+DB_PASSWORD=
+DB_NAME=
+
+BR_USERNAME=
+BR_PASSWORD=
+BR_CHANGES_URL=
 ```
