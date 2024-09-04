@@ -5,6 +5,6 @@ namespace UptimeTeatmik.Domain;
 public class Business : BaseEntityMetadata
 {
     [Key] public Guid BusinessId { get; set; }
-    public Guid BusinessName { get; set; }
-    public Guid BusinessCode { get; set; }
+    [MaxLength(256)] public string BusinessName { get; set; } = null!;
+    [MaxLength(64)] public string BusinessCode { get; set; } = null!;
 }
