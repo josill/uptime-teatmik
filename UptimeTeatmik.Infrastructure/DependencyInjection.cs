@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 using UptimeTeatmik.Application.Common;
 using UptimeTeatmik.Application.Common.Interfaces;
+using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure.Persistence;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
@@ -101,6 +102,7 @@ public static class DependencyInjection
         builderConfiguration.Bind(BusinessRegisterSettings.SectionName, businessRegisterSettings);
         services.AddSingleton(Options.Create(businessRegisterSettings));
         services.AddScoped<IBusinessRegisterService, BusinessRegisterService>();
+        services.AddScoped<IBusinessRegisterBodyGenerator, BusinessRegisterBodyGenerator>();
 
         return services;
     }

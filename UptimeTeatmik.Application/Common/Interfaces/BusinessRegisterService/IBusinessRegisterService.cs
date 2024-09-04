@@ -1,6 +1,4 @@
-using UptimeTeatmik.Domain;
-
-namespace UptimeTeatmik.Application.Common.Interfaces;
+namespace UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 
 public interface IBusinessRegisterService
 {
