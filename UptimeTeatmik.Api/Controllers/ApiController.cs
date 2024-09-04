@@ -8,13 +8,13 @@ namespace UptimeTeatmik.Api.Controllers;
 // [Authorize]
 public class ApiController : ControllerBase
 {
-    protected IActionResult Problem(List<Error> errors)
+    protected IActionResult HandleErrors(List<Error> errors)
     {
         if (errors.Count == 0) return Problem();
         
         if (errors.TrueForAll(e => e.Type == ErrorType.Validation))
         {
-            return ValidationProblem(errors);
+            return CreateValidationProblem(errors);
         }
         
         HttpContext.Items[HttpContextItemKeys.Errors] = errors;
@@ -37,7 +37,7 @@ public class ApiController : ControllerBase
         return Problem(statusCode: statusCode, title: error.Description);
     }
 
-    private IActionResult ValidationProblem(IEnumerable<Error> errors)
+    private IActionResult CreateValidationProblem(IEnumerable<Error> errors)
     {
         var modelStateDict = new ModelStateDictionary();
 

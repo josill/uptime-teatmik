@@ -14,7 +14,7 @@ public class BusinessController(ISender mediator) : ApiController
 
         return result.Match(
             Ok,
-            Problem
+            HandleErrors
         );
     }
 }
