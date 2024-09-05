@@ -3,27 +3,15 @@ using Newtonsoft.Json.Linq;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
 
-public class BusinessRegisterParser
+public static class BusinessRegisterParser
 {
-    
-    public static JToken? ParseBusinessRelatedPersons(string responseContent)
+    public static JToken ParseBusinessRelatedEntities(string responseContent)
     {
         var jObject = JObject.Parse(responseContent);
-        var relatedPersons = jObject["keha"]?["ettevotjad"]?["item"]?[0]?["isikuandmed"]?["kaardile_kantud_isikud"]?["item"];
+        var relatedEntities = jObject["keha"]?["ettevotjad"]?["item"]?[0]?["isikuandmed"]?["kaardile_kantud_isikud"]?["item"];
+        if (relatedEntities == null) throw new InvalidOperationException("Unable to retrieve information about related entity.");
 
-        return relatedPersons;
-    }
-
-    public static string? ParseBusinessRelatedPerson(JToken personJson)
-    {
-        var personPersonalOrBusinessCode = personJson["isikukood_registrikood"].ToString();
-        var firstName = personJson["eesnimi"].ToString();
-        var lastOrBusinessName = personJson["nimi_arinimi"].ToString();
-        var personType = personJson["isiku_roll"].ToString();
-        var json = JsonConvert.DeserializeObject(personJson.ToString());
-        var formattedJson = JsonConvert.SerializeObject(json, Formatting.Indented);
-
-        return "";
+        return relatedEntities;
     }
 
     public static ParsedEntity ParseEntity(string responseContent)

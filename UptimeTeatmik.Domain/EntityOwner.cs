@@ -8,8 +8,8 @@ public class EntityOwner : BaseEntityMetadata
     [MaxLength(32)] public string RoleInEntityAbbreviation { get; set; } = null!;
     [MaxLength(256)] public string RoleInEntity { get; set; } = null!;
     
-    public Entity Owner { get; set; } = null!;
+    public virtual Entity Owner { get; set; } = null!;
     public Guid OwnerId { get; set; }
-    public Entity Owned { get; set; } = null!;
+    public virtual Entity Owned { get; set; } = null!;
     public Guid OwnedId { get; set; }
 }

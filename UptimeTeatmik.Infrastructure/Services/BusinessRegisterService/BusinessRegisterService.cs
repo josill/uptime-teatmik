@@ -57,15 +57,17 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
     {
         var body = businessRegisterBodyGenerator.GenerateDetailDataUrlXmlBody(businessCode);
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
+        Entity entity;
+        
         try
         {
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
-            // TODO: Refactor next
-            // var relatedPersons = await UpdateBusinessRelatedPersons(responseContent);
             
             var existingEntity =
-                await dbContext.Entities.FirstOrDefaultAsync(b =>
-                    b.BusinessOrPersonalCode == businessCode);
+                await dbContext.Entities
+                    .Include(e => e.OwnedEntities)
+                    .ThenInclude(eo => eo.Owner)
+                    .FirstOrDefaultAsync(b => b.BusinessOrPersonalCode == businessCode);
             
             // TODO: check for changes / updates
             if (existingEntity != null)
@@ -75,6 +77,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 existingEntity.EntityType = parsedEntity.EntityType;
                 existingEntity.EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation;
 
+                entity = existingEntity;
                 dbContext.Entities.Update(existingEntity);
             }
             else
@@ -89,9 +92,11 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                     FormattedJson = parsedEntity.FormattedJson
                 };
 
+                entity = newEntity;
                 dbContext.Entities.Add(newEntity);
             }
 
+            await UpdateBusinessRelatedPersons(responseContent, entity);
             await dbContext.SaveChangesAsync();
         }
         catch (JsonException)
@@ -100,22 +105,41 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         }
     }
     
-      
-    // private async Task<List<Person>> UpdateBusinessRelatedPersons(string responseContent)
-    // {
-    //     var result = new List<Person>();
-    //     var relatedPersons = BusinessRegisterParser.ParseBusinessRelatedPersons(responseContent);
-    //     if (relatedPersons == null) return result;
-    //     
-    //     foreach (var person in relatedPersons)
-    //     {
-    //         var parsedPerson = new ParsedPerson(person);
-    //     }
-    //
-    //     return result;
-    // }
-    
+    private async Task UpdateBusinessRelatedPersons(string responseContent, Entity entity)
+    {
+        var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
 
+        foreach (var relatedEntity in relatedEntitiesJson)
+        {
+            var parsedRelatedEntity = new ParsedRelatedEntity(relatedEntity);
+            var owner = await dbContext.Entities.FirstOrDefaultAsync(e =>
+                e.BusinessOrPersonalCode == parsedRelatedEntity.PersonalOrBusinessCode) ?? new Entity()
+            {
+                Id = Guid.NewGuid(),
+                FirstName = parsedRelatedEntity.FirstName,
+                BusinessOrLastName = parsedRelatedEntity.LastOrBusinessName,
+                BusinessOrPersonalCode = parsedRelatedEntity.PersonalOrBusinessCode,
+                EntityTypeAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation,
+                EntityType = parsedRelatedEntity.EntityType
+            };
+
+            // TODO: check if already exists
+            
+            
+            var ownerRelation = new EntityOwner()
+            {
+                Id = Guid.NewGuid(),
+                Owned = entity,
+                Owner = owner,
+                RoleInEntity = parsedRelatedEntity.EntityType,
+                RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation
+            };
+            dbContext.EntityOwners.Add(ownerRelation);
+        }
+
+        await dbContext.SaveChangesAsync();
+    }
+    
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
     {
         var content = new StringContent(body, Encoding.UTF8, "text/xml");
