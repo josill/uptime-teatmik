@@ -6,18 +6,20 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser
     {
         public ParsedRelatedEntity(JToken relatedEntityJson)
         {
-            PersonalOrBusinessCode = relatedEntityJson["isikukood_registrikood"].ToString();
+            BusinessOrPersonalCode = relatedEntityJson["isikukood_registrikood"].ToString();
             FirstName = relatedEntityJson["eesnimi"].ToString();
-            LastOrBusinessName = relatedEntityJson["nimi_arinimi"].ToString();
+            BusinessOrLastName = relatedEntityJson["nimi_arinimi"].ToString();
             EntityType = relatedEntityJson["isiku_roll_tekstina"].ToString();
             EntityTypeAbbreviation = relatedEntityJson["isiku_roll"].ToString();
+            UniqueCode = $"{FirstName}{BusinessOrLastName}{BusinessOrPersonalCode}";
         }
 
-        public string PersonalOrBusinessCode { get; }
+        public string BusinessOrPersonalCode { get; }
         public string? FirstName { get; }
-        public string LastOrBusinessName { get; }
+        public string BusinessOrLastName { get; }
         public string EntityType { get; }
         public string EntityTypeAbbreviation { get; }
+        public string UniqueCode { get; set; }
         public string? FormattedJson { get; set; }
 
         public override bool Equals(object? obj)
@@ -29,16 +31,16 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return PersonalOrBusinessCode == other.PersonalOrBusinessCode &&
+            return BusinessOrPersonalCode == other.BusinessOrPersonalCode &&
                    FirstName == other.FirstName &&
-                   LastOrBusinessName == other.LastOrBusinessName &&
+                   BusinessOrLastName == other.BusinessOrLastName &&
                    EntityType == other.EntityType &&
                    EntityTypeAbbreviation == other.EntityTypeAbbreviation;
         }
         
         public override int GetHashCode()
         {
-            return HashCode.Combine(PersonalOrBusinessCode, FirstName, LastOrBusinessName, EntityType, EntityTypeAbbreviation);
+            return HashCode.Combine(BusinessOrPersonalCode, FirstName, BusinessOrLastName, EntityType, EntityTypeAbbreviation);
         }
     }
 }

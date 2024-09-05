@@ -108,10 +108,10 @@ private async Task UpdateBusinessRelatedPersons(string responseContent, Entity e
     var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
     var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
     
-    var businessCodes = parsedRelatedEntities.Select(pre => pre.PersonalOrBusinessCode).ToList();
+    var entityUniqueCodes = parsedRelatedEntities.Select(pre => pre.UniqueCode).ToList();
 
     var existingOwners = await dbContext.Entities
-        .Where(e => businessCodes.Contains(e.BusinessOrPersonalCode))
+        .Where(e => entityUniqueCodes.Contains(e.BusinessOrPersonalCode))
         .ToDictionaryAsync(e => e.BusinessOrPersonalCode, e => e);
 
     var existingRelations = await dbContext.EntityOwners
@@ -124,22 +124,22 @@ private async Task UpdateBusinessRelatedPersons(string responseContent, Entity e
 
     foreach (var parsedRelatedEntity in parsedRelatedEntities)
     {
-        if (!existingOwners.TryGetValue(parsedRelatedEntity.PersonalOrBusinessCode, out var owner))
+        if (!existingOwners.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var owner))
         {
             owner = new Entity
             {
                 Id = Guid.NewGuid(),
                 FirstName = parsedRelatedEntity.FirstName,
-                BusinessOrLastName = parsedRelatedEntity.LastOrBusinessName,
-                BusinessOrPersonalCode = parsedRelatedEntity.PersonalOrBusinessCode,
+                BusinessOrLastName = parsedRelatedEntity.BusinessOrLastName,
+                BusinessOrPersonalCode = parsedRelatedEntity.BusinessOrPersonalCode,
                 EntityTypeAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation,
                 EntityType = parsedRelatedEntity.EntityType
             };
             newOwners.Add(owner);
-            existingOwners[parsedRelatedEntity.PersonalOrBusinessCode] = owner;
+            existingOwners[parsedRelatedEntity.BusinessOrPersonalCode] = owner;
         }
 
-        if (!existingRelations.TryGetValue(parsedRelatedEntity.PersonalOrBusinessCode, out var relation))
+        if (!existingRelations.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var relation))
         {
             relation = new EntityOwner
             {
@@ -160,19 +160,16 @@ private async Task UpdateBusinessRelatedPersons(string responseContent, Entity e
         }
     }
 
-    // Add new owners
     if (newOwners.Any())
     {
         await dbContext.Entities.AddRangeAsync(newOwners);
     }
 
-    // Add new relations
     if (newRelations.Any())
     {
         await dbContext.EntityOwners.AddRangeAsync(newRelations);
     }
 
-    // Update changed relations
     if (updatedRelations.Any())
     {
         dbContext.EntityOwners.UpdateRange(updatedRelations);
