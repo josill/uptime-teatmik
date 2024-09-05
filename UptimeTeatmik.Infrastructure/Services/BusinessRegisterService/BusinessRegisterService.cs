@@ -59,13 +59,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
         try
         {
-            var formattedJson = BusinessRegisterParser.ParseBusinessFormattedJson(responseContent);
-            var businessName = BusinessRegisterParser.ParseBusinessName(responseContent);
+            var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
             // TODO: Refactor next
             // var relatedPersons = await UpdateBusinessRelatedPersons(responseContent);
-            
-            // TODO: Correctly handle the error
-            if (businessName == null) throw new InvalidOperationException("Error parsing business name");
             
             var existingEntity =
                 await dbContext.Entities.FirstOrDefaultAsync(b =>
@@ -74,8 +70,10 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             // TODO: check for changes / updates
             if (existingEntity != null)
             {
-                existingEntity.BusinessOrLastName = businessName;
-                existingEntity.FormattedJson = formattedJson;
+                existingEntity.BusinessOrLastName = parsedEntity.LastOrBusinessName;
+                existingEntity.FormattedJson = parsedEntity.FormattedJson;
+                existingEntity.EntityType = parsedEntity.EntityType;
+                existingEntity.EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation;
 
                 dbContext.Entities.Update(existingEntity);
             }
@@ -85,8 +83,10 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 {
                     Id = Guid.NewGuid(),
                     BusinessOrPersonalCode = businessCode,
-                    BusinessOrLastName = businessName,
-                    FormattedJson = formattedJson
+                    BusinessOrLastName = parsedEntity.LastOrBusinessName,
+                    EntityType = parsedEntity.EntityType,
+                    EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
+                    FormattedJson = parsedEntity.FormattedJson
                 };
 
                 dbContext.Entities.Add(newEntity);

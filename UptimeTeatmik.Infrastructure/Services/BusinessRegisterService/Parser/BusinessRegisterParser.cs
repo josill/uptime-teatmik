@@ -25,20 +25,21 @@ public class BusinessRegisterParser
 
         return "";
     }
-    
-    public static string? ParseBusinessName(string responseContent)
+
+    public static ParsedEntity ParseEntity(string responseContent)
     {
         var jObject = JObject.Parse(responseContent);
-        var businessName = jObject["keha"]?["ettevotjad"]?["item"]?[0]?["nimi"].ToString();
-
-        return businessName;
-    }
-
-    public static string ParseBusinessFormattedJson(string responseContent)
-    {
+        var entityJson = jObject["keha"]?["ettevotjad"]?["item"]?[0];
+        if (entityJson == null) throw new InvalidOperationException("Unable to retrieve information about entity.");
+        
         var jsonObject = JsonConvert.DeserializeObject(responseContent);
         var formattedJson = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
+        
+        var parsedEntity = new ParsedEntity(entityJson)
+        {
+            FormattedJson = formattedJson
+        };
 
-        return formattedJson;
+        return parsedEntity;
     }
 }
