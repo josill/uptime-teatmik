@@ -124,7 +124,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             };
 
             // TODO: check if already exists
-            
+            if (owner.OwnedEntities.Contains(owner))
             
             var ownerRelation = new EntityOwner()
             {
