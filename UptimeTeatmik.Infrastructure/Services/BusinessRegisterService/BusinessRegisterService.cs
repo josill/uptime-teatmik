@@ -103,80 +103,81 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         }
     }
     
-private async Task UpdateBusinessRelatedPersons(string responseContent, Entity entity)
-{
-    var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
-    var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
-    
-    var entityUniqueCodes = parsedRelatedEntities.Select(pre => pre.UniqueCode).ToList();
-
-    var existingOwners = await dbContext.Entities
-        .Where(e => entityUniqueCodes.Contains(e.BusinessOrPersonalCode))
-        .ToDictionaryAsync(e => e.BusinessOrPersonalCode, e => e);
-
-    var existingRelations = await dbContext.EntityOwners
-        .Where(eo => eo.Owned.Id == entity.Id)
-        .ToDictionaryAsync(eo => eo.Owner.BusinessOrPersonalCode, eo => eo);
-
-    List<Entity> newOwners = [];
-    List<EntityOwner> newRelations = [];
-    List<EntityOwner> updatedRelations = [];
-
-    foreach (var parsedRelatedEntity in parsedRelatedEntities)
+    private async Task UpdateBusinessRelatedPersons(string responseContent, Entity ownedEntity)
     {
-        if (!existingOwners.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var owner))
+        var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
+        var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
+        
+        var entityUniqueCodes = parsedRelatedEntities.Select(pre => pre.UniqueCode).ToList();
+
+        var existingOwners = await dbContext.Entities
+            .Where(e => entityUniqueCodes.Contains(e.UniqueCode))
+            .ToDictionaryAsync(e => e.BusinessOrPersonalCode, e => e);
+
+        var existingRelations = await dbContext.EntityOwners
+            .Include(eo => eo.Owner)
+            .Where(eo => eo.Owned.Id == ownedEntity.Id)
+            .ToDictionaryAsync(eo => eo.Owner.BusinessOrPersonalCode, eo => eo);
+
+        List<Entity> newOwners = [];
+        List<EntityOwner> newRelations = [];
+        List<EntityOwner> updatedRelations = [];
+
+        foreach (var parsedRelatedEntity in parsedRelatedEntities)
         {
-            owner = new Entity
+            if (!existingOwners.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var owner))
             {
-                Id = Guid.NewGuid(),
-                FirstName = parsedRelatedEntity.FirstName,
-                BusinessOrLastName = parsedRelatedEntity.BusinessOrLastName,
-                BusinessOrPersonalCode = parsedRelatedEntity.BusinessOrPersonalCode,
-                EntityTypeAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation,
-                EntityType = parsedRelatedEntity.EntityType
-            };
-            newOwners.Add(owner);
-            existingOwners[parsedRelatedEntity.BusinessOrPersonalCode] = owner;
-        }
+                owner = new Entity
+                {
+                    Id = Guid.NewGuid(),
+                    FirstName = parsedRelatedEntity.FirstName,
+                    BusinessOrLastName = parsedRelatedEntity.BusinessOrLastName,
+                    BusinessOrPersonalCode = parsedRelatedEntity.BusinessOrPersonalCode,
+                    EntityTypeAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation,
+                    EntityType = parsedRelatedEntity.EntityType
+                };
+                newOwners.Add(owner);
+                existingOwners[parsedRelatedEntity.BusinessOrPersonalCode] = owner;
+            }
 
-        if (!existingRelations.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var relation))
-        {
-            relation = new EntityOwner
+            if (!existingRelations.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var relation))
             {
-                Id = Guid.NewGuid(),
-                Owned = entity,
-                Owner = owner,
-                RoleInEntity = parsedRelatedEntity.EntityType,
-                RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation
-            };
-            newRelations.Add(relation);
+                relation = new EntityOwner
+                {
+                    Id = Guid.NewGuid(),
+                    Owned = ownedEntity,
+                    Owner = owner,
+                    RoleInEntity = parsedRelatedEntity.EntityType,
+                    RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation
+                };
+                newRelations.Add(relation);
+            }
+            else if (relation.RoleInEntity != parsedRelatedEntity.EntityType || 
+                     relation.RoleInEntityAbbreviation != parsedRelatedEntity.EntityTypeAbbreviation)
+            {
+                relation.RoleInEntity = parsedRelatedEntity.EntityType;
+                relation.RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation;
+                updatedRelations.Add(relation);
+            }
         }
-        else if (relation.RoleInEntity != parsedRelatedEntity.EntityType || 
-                 relation.RoleInEntityAbbreviation != parsedRelatedEntity.EntityTypeAbbreviation)
+
+        if (newOwners.Any())
         {
-            relation.RoleInEntity = parsedRelatedEntity.EntityType;
-            relation.RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation;
-            updatedRelations.Add(relation);
+            await dbContext.Entities.AddRangeAsync(newOwners);
         }
-    }
 
-    if (newOwners.Any())
-    {
-        await dbContext.Entities.AddRangeAsync(newOwners);
-    }
+        if (newRelations.Any())
+        {
+            await dbContext.EntityOwners.AddRangeAsync(newRelations);
+        }
 
-    if (newRelations.Any())
-    {
-        await dbContext.EntityOwners.AddRangeAsync(newRelations);
-    }
+        if (updatedRelations.Any())
+        {
+            dbContext.EntityOwners.UpdateRange(updatedRelations);
+        }
 
-    if (updatedRelations.Any())
-    {
-        dbContext.EntityOwners.UpdateRange(updatedRelations);
+        await dbContext.SaveChangesAsync();
     }
-
-    await dbContext.SaveChangesAsync();
-}
     
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
     {
