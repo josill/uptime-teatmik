@@ -83,7 +83,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             {
                 var newEntity = new Entity()
                 {
-                    EntityId = Guid.NewGuid(),
+                    Id = Guid.NewGuid(),
                     BusinessOrPersonalCode = businessCode,
                     BusinessOrLastName = businessName,
                     FormattedJson = formattedJson
