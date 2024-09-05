@@ -3,10 +3,10 @@ using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Domain;
+using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
@@ -59,8 +59,10 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
         try
         {
-            var formattedJson = ParseBusinessFormattedJson(responseContent);
-            var businessName = ParseBusinessName(responseContent);
+            var formattedJson = BusinessRegisterParser.ParseBusinessFormattedJson(responseContent);
+            var businessName = BusinessRegisterParser.ParseBusinessName(responseContent);
+            var relatedPersons = await UpdateBusinessRelatedPersons(responseContent);
+            
             // TODO: Correctly handle the error
             if (businessName == null) throw new InvalidOperationException("Error parsing business name");
             
@@ -93,6 +95,22 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             // TODO: Correctly handle the error
         }
     }
+    
+      
+    private async Task<List<Person>> UpdateBusinessRelatedPersons(string responseContent)
+    {
+        var result = new List<Person>();
+        var relatedPersons = BusinessRegisterParser.ParseBusinessRelatedPersons(responseContent);
+        if (relatedPersons == null) return result;
+        
+        foreach (var person in relatedPersons)
+        {
+            var parsedPerson = new ParsedPerson(person);
+        }
+
+        return result;
+    }
+    
 
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
     {
@@ -103,21 +121,5 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         
         var responseContent = await response.Content.ReadAsStringAsync();
         return responseContent;
-    }
-
-    private static string? ParseBusinessName(string responseContent)
-    {
-        var jObject = JObject.Parse(responseContent);
-        var businessName = jObject["keha"]?["ettevotjad"]?["item"]?[0]?["nimi"].ToString();
-
-        return businessName;
-    }
-
-    private static string ParseBusinessFormattedJson(string responseContent)
-    {
-        var jsonObject = JsonConvert.DeserializeObject(responseContent);
-        var formattedJson = JsonConvert.SerializeObject(jsonObject, Formatting.Indented);
-
-        return formattedJson;
     }
 }
