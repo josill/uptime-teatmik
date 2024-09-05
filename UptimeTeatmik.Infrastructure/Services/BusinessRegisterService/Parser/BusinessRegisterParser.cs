@@ -25,7 +25,7 @@ public class BusinessRegisterParser
 
         return "";
     }
-
+    
     public static string? ParseBusinessName(string responseContent)
     {
         var jObject = JObject.Parse(responseContent);

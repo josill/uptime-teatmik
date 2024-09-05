@@ -7,5 +7,5 @@ namespace UptimeTeatmik.Infrastructure.Persistence;
 
 public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
 {
-    public DbSet<BusinessRegisterEntity> BusinessRegisterEntities { get; set; }
+    public DbSet<Entity> BusinessRegisterEntities { get; set; }
 }
