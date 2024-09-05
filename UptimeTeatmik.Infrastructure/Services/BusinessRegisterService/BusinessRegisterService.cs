@@ -66,7 +66,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             var existingEntity =
                 await dbContext.Entities
                     .Include(e => e.OwnedEntities)
-                    .ThenInclude(eo => eo.Owner)
                     .FirstOrDefaultAsync(b => b.BusinessOrPersonalCode == businessCode);
             
             // TODO: check for changes / updates
@@ -123,9 +122,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 EntityType = parsedRelatedEntity.EntityType
             };
 
-            // TODO: check if already exists
-            if (owner.OwnedEntities.Contains(owner))
-            
+            if (owner.OwnedEntities.Contains(owner)) continue;
             var ownerRelation = new EntityOwner()
             {
                 Id = Guid.NewGuid(),
