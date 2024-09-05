@@ -44,7 +44,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         {
             try
             {
-                await UpdateBusinessAsync(businessCode);
+                // await UpdateBusinessAsync(businessCode);
             }
             catch (Exception ex)
             {
@@ -52,64 +52,77 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             }
         }
     }
-
-    private async Task UpdateBusinessAsync(string businessCode)
-    {
-        var body = businessRegisterBodyGenerator.GenerateDetailDataUrlXmlBody(businessCode);
-        var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
-        try
-        {
-            var formattedJson = BusinessRegisterParser.ParseBusinessFormattedJson(responseContent);
-            var businessName = BusinessRegisterParser.ParseBusinessName(responseContent);
-            var relatedPersons = await UpdateBusinessRelatedPersons(responseContent);
-            
-            // TODO: Correctly handle the error
-            if (businessName == null) throw new InvalidOperationException("Error parsing business name");
-            
-            var updatedBusiness = await dbContext.Businesses
-                .Where(b => b.BusinessCode == businessCode)
-                .FirstOrDefaultAsync();
-            if (updatedBusiness != null)
-            {
-                updatedBusiness.BusinessName = businessName;
-                updatedBusiness.FormattedJson = formattedJson;
-
-                dbContext.Businesses.Update(updatedBusiness);
-            }
-            else
-            {
-                updatedBusiness = new Business()
-                {
-                    BusinessId = Guid.NewGuid(),
-                    BusinessCode = businessCode,
-                    BusinessName = businessName,
-                    FormattedJson = formattedJson
-                };
-                dbContext.Businesses.Add(updatedBusiness);
-            }
-
-            await dbContext.SaveChangesAsync();
-        }
-        catch (JsonException)
-        {
-            // TODO: Correctly handle the error
-        }
-    }
-    
-      
-    private async Task<List<Person>> UpdateBusinessRelatedPersons(string responseContent)
-    {
-        var result = new List<Person>();
-        var relatedPersons = BusinessRegisterParser.ParseBusinessRelatedPersons(responseContent);
-        if (relatedPersons == null) return result;
-        
-        foreach (var person in relatedPersons)
-        {
-            var parsedPerson = new ParsedPerson(person);
-        }
-
-        return result;
-    }
+    //
+    // private async Task UpdateBusinessAsync(string businessCode)
+    // {
+    //     var body = businessRegisterBodyGenerator.GenerateDetailDataUrlXmlBody(businessCode);
+    //     var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
+    //     try
+    //     {
+    //         var formattedJson = BusinessRegisterParser.ParseBusinessFormattedJson(responseContent);
+    //         var businessName = BusinessRegisterParser.ParseBusinessName(responseContent);
+    //         var relatedPersons = await UpdateBusinessRelatedPersons(responseContent);
+    //         
+    //         // TODO: Correctly handle the error
+    //         if (businessName == null) throw new InvalidOperationException("Error parsing business name");
+    //         
+    //         var updatedBusiness = await dbContext.Businesses
+    //             .Where(b => b.BusinessCode == businessCode)
+    //             .FirstOrDefaultAsync();
+    //         var updatedBre =
+    //             await dbContext.BusinessRegisterEntities.FirstOrDefaultAsync(b =>
+    //                 b.BusinessOrPersonalCode == businessCode);
+    //         if (updatedBre != null)
+    //         {
+    //             updatedBre.BusinessOrLastName = businessName;
+    //             updatedBre.FormattedJson = formattedJson;
+    //         }
+    //         else
+    //         {
+    //             
+    //         }
+    //         
+    //         if (updatedBusiness != null)
+    //         {
+    //             updatedBusiness.BusinessName = businessName;
+    //             updatedBusiness.FormattedJson = formattedJson;
+    //
+    //             dbContext.Businesses.Update(updatedBusiness);
+    //         }
+    //         else
+    //         {
+    //             updatedBusiness = new Business()
+    //             {
+    //                 BusinessId = Guid.NewGuid(),
+    //                 BusinessCode = businessCode,
+    //                 BusinessName = businessName,
+    //                 FormattedJson = formattedJson
+    //             };
+    //             dbContext.Businesses.Add(updatedBusiness);
+    //         }
+    //
+    //         await dbContext.SaveChangesAsync();
+    //     }
+    //     catch (JsonException)
+    //     {
+    //         // TODO: Correctly handle the error
+    //     }
+    // }
+    //
+    //   
+    // private async Task<List<Person>> UpdateBusinessRelatedPersons(string responseContent)
+    // {
+    //     var result = new List<Person>();
+    //     var relatedPersons = BusinessRegisterParser.ParseBusinessRelatedPersons(responseContent);
+    //     if (relatedPersons == null) return result;
+    //     
+    //     foreach (var person in relatedPersons)
+    //     {
+    //         var parsedPerson = new ParsedPerson(person);
+    //     }
+    //
+    //     return result;
+    // }
     
 
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
