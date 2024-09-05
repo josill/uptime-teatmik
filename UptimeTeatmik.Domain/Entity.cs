@@ -11,6 +11,4 @@ public class Entity : BaseEntityMetadata
     [MaxLength(32)] public string? EntityTypeAbbreviation { get; set; }
     [MaxLength(256)] public string? EntityType { get; set; }
     public string? FormattedJson { get; set; }
-
-    public ICollection<Entity> Owners { get; set; } = new List<Entity>();
 }
