@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
 using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 

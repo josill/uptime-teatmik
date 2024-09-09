@@ -1,6 +1,7 @@
 using ErrorOr;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using UptimeTeatmik.Application.Businesses.Common;
 using UptimeTeatmik.Application.Common.Interfaces;
 
 namespace UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
