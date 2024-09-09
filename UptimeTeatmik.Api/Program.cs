@@ -25,6 +25,18 @@ var app = builder.Build();
         // app.UseSwagger();
         // app.UseSwaggerUI();
     }
+    
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: "origins",
+            policy =>
+            {
+                policy.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+    });
 
     app.UseHangfireDashboard("/hangfire", new DashboardOptions
     {
@@ -54,6 +66,7 @@ var app = builder.Build();
     
     app.UseHttpsRedirection();
     app.MapControllers();
+    app.UseCors("origins");
 
     app.Run();
 }
