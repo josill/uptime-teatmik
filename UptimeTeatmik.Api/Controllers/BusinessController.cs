@@ -5,7 +5,7 @@ using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 
 namespace UptimeTeatmik.Api.Controllers;
 
-[Route("/v3/businesses")]
+[Route("/v1/businesses")]
 public class BusinessController(ISender mediator) : ApiController
 {
     [HttpGet("updates")]
