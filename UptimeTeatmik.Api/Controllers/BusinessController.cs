@@ -20,7 +20,7 @@ public class BusinessController(ISender mediator) : ApiController
         );
     }
 
-    [HttpGet]
+    [HttpGet("search")]
     public async Task<IActionResult> SearchForBusinesses([FromQuery] string query)
     {
         var mediatorQuery = new SearchForBusinessesQuery(query);
