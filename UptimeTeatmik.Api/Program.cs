@@ -12,6 +12,17 @@ var builder = WebApplication.CreateBuilder(args);
     builder.Services.AddInfrastructure(builder.Configuration);
     builder.Services.AddApplication();
     builder.Services.AddControllers();
+    builder.Services.AddCors(options =>
+    {
+        options.AddPolicy(name: "origins",
+            policy =>
+            {
+                policy.WithOrigins("http://localhost:5173")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            });
+    });
     // builder.Services.AddEndpointsApiExplorer();
     // builder.Services.AddSwaggerGen();
 }
@@ -25,18 +36,6 @@ var app = builder.Build();
         // app.UseSwagger();
         // app.UseSwaggerUI();
     }
-    
-    builder.Services.AddCors(options =>
-    {
-        options.AddPolicy(name: "origins",
-            policy =>
-            {
-                policy.WithOrigins("http://localhost:5173")
-                    .AllowAnyHeader()
-                    .AllowAnyMethod()
-                    .AllowCredentials();
-            });
-    });
 
     app.UseHangfireDashboard("/hangfire", new DashboardOptions
     {
