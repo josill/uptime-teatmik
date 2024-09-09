@@ -5,8 +5,8 @@ namespace UptimeTeatmik.Domain;
 public class EntityOwner : BaseEntityMetadata
 {
     [Key] public Guid Id { get; set; }
-    [MaxLength(32)] public string RoleInEntityAbbreviation { get; set; } = null!;
-    [MaxLength(256)] public string RoleInEntity { get; set; } = null!;
+    [MaxLength(32)] public string? RoleInEntityAbbreviation { get; set; } = null!;
+    [MaxLength(256)] public string? RoleInEntity { get; set; } = null!;
     
     public virtual Entity Owner { get; set; } = null!;
     public Guid OwnerId { get; set; }
