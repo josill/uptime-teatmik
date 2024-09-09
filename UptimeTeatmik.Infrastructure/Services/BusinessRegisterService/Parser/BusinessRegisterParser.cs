@@ -30,4 +30,9 @@ public static class BusinessRegisterParser
 
         return parsedEntity;
     }
+    
+    public static string? GetStringValue(JToken? token)
+    {
+        return token is { HasValues: true } ? token.ToString() : null;
+    }
 }

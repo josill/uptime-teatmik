@@ -40,12 +40,15 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
 
     public async Task UpdateBusinessesAsync(List<string> businessesCodes)
     {
+        var i = 0;
+        
         foreach (var businessCode in businessesCodes)
         {
             try
             {
                 await UpdateBusinessAsync(businessCode);
-                break;
+                i++;
+                if (i == 10) break;
             }
             catch (Exception ex)
             {
