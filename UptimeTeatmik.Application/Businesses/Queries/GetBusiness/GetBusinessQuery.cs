@@ -1,7 +1,6 @@
 using ErrorOr;
 using MediatR;
 using UptimeTeatmik.Application.Businesses.Common;
-using UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
 
 namespace UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 
