@@ -12,7 +12,7 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser
             var entityTypeIsEmptyObject = !entityJson["yldandmed"]["oigusliku_vormi_alaliik_tekstina"].HasValues;
             var entityTypeAbbreviationIsEmptyObject = !entityJson["yldandmed"]["oigusliku_vormi_alaliik"].HasValues;
             
-            \EntityTypeAbbreviation = !entityTypeAbbreviationIsEmptyObject ? entityJson["yldandmed"]["oigusliku_vormi_alaliik"].ToString() : null;
+            EntityTypeAbbreviation = !entityTypeAbbreviationIsEmptyObject ? entityJson["yldandmed"]["oigusliku_vormi_alaliik"].ToString() : null;
             EntityType = !entityTypeIsEmptyObject ? entityJson["yldandmed"]["oigusliku_vormi_alaliik_tekstina"]?.ToString() : null;
         }
 
