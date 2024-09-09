@@ -45,6 +45,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             try
             {
                 await UpdateBusinessAsync(businessCode);
+                break;
             }
             catch (Exception ex)
             {
