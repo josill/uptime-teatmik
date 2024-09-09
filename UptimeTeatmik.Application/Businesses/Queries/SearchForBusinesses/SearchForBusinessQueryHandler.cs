@@ -11,7 +11,7 @@ public class SearchForBusinessQueryHandler(IAppDbContext dbContext) : IRequestHa
     public async Task<ErrorOr<List<BusinessResult>>> Handle(SearchForBusinessesQuery request, CancellationToken cancellationToken)
     {
         var matchingBusinesses = await dbContext.Entities
-            .Where(e => e.BusinessOrLastName != null && e.BusinessOrLastName.Contains(request.Query))
+            .Where(e => e.BusinessOrLastName != null && e.BusinessOrLastName.ToLower().Contains(request.Query.ToLower()))
             .Select(e => new BusinessResult(e))
             .ToListAsync(cancellationToken: cancellationToken);
 
