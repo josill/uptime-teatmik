@@ -11,7 +11,7 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser
             BusinessOrLastName = BusinessRegisterParser.GetStringValue(relatedEntityJson["nimi_arinimi"]);
             EntityType = BusinessRegisterParser.GetStringValue(relatedEntityJson["isiku_roll_tekstina"]);
             EntityTypeAbbreviation = BusinessRegisterParser.GetStringValue(relatedEntityJson["isiku_roll"]);
-            UniqueCode = $"{FirstName}{BusinessOrLastName}{BusinessOrPersonalCode}";
+            UniqueCode = $"{BusinessRegisterParser.GetStringValue(relatedEntityJson["eesnimi"])}{BusinessRegisterParser.GetStringValue(relatedEntityJson["nimi_arinimi"])}{BusinessRegisterParser.GetStringValue(relatedEntityJson["isikukood_registrikood"])}";
         }
 
         public string? BusinessOrPersonalCode { get; }

@@ -40,15 +40,11 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
 
     public async Task UpdateBusinessesAsync(List<string> businessesCodes)
     {
-        var i = 0;
-        
         foreach (var businessCode in businessesCodes)
         {
             try
             {
                 await UpdateBusinessAsync(businessCode);
-                i++;
-                if (i == 10) break;
             }
             catch (Exception ex)
             {
@@ -116,12 +112,12 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
 
         var existingOwners = await dbContext.Entities
             .Where(e => entityUniqueCodes.Contains(e.UniqueCode))
-            .ToDictionaryAsync(e => e.BusinessOrPersonalCode, e => e);
+            .ToDictionaryAsync(e => e.UniqueCode, e => e);
 
         var existingRelations = await dbContext.EntityOwners
             .Include(eo => eo.Owner)
             .Where(eo => eo.Owned.Id == ownedEntity.Id)
-            .ToDictionaryAsync(eo => eo.Owner.BusinessOrPersonalCode, eo => eo);
+            .ToDictionaryAsync(eo => eo.Owner.UniqueCode, eo => eo);
 
         List<Entity> newOwners = [];
         List<EntityOwner> newRelations = [];
@@ -129,7 +125,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
 
         foreach (var parsedRelatedEntity in parsedRelatedEntities)
         {
-            if (!existingOwners.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var owner))
+            if (!existingOwners.TryGetValue(parsedRelatedEntity.UniqueCode, out var owner))
             {
                 owner = new Entity
                 {
@@ -143,7 +139,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 newOwners.Add(owner);
                 existingOwners[parsedRelatedEntity.BusinessOrPersonalCode] = owner;
             }
-
+            
             if (!existingRelations.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var relation))
             {
                 relation = new EntityOwner
