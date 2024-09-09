@@ -8,6 +8,18 @@ namespace UptimeTeatmik.Api.Controllers;
 [Route("/v1/businesses")]
 public class BusinessController(ISender mediator) : ApiController
 {
+    [HttpGet("{businessId}")]
+    public async Task<IActionResult> GetBusiness(Guid businessId)
+    {
+        var query = new GetBusinessQuery(businessId);
+        var result = await mediator.Send(query);
+        
+        return result.Match(
+            Ok,
+            HandleErrors
+        );
+    }
+    
     [HttpGet("updates")]
     public async Task<IActionResult> GetUpdates([FromQuery] DateTime date)
     {
