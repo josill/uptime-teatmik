@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinessesQuery;
+using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 
 namespace UptimeTeatmik.Api.Controllers;
 
