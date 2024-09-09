@@ -1,7 +1,7 @@
 using ErrorOr;
 using MediatR;
 
-namespace UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinessesQuery;
+namespace UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 
 public record UpdateBusinessesQuery(DateTime Date) : IRequest<ErrorOr<List<UpdateBusinessesResult>>>;
 

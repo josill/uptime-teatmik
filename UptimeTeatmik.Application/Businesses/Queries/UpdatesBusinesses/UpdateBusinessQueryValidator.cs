@@ -1,6 +1,6 @@
 using FluentValidation;
 
-namespace UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinessesQuery;
+namespace UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 
 public class UpdateBusinessQueryValidator : AbstractValidator<UpdateBusinessesQuery>
 {
