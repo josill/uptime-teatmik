@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Domain;
+using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Application.Common.Interfaces;
 

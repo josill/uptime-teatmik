@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
+using UptimeTeatmik.Domain.Base;
 
-namespace UptimeTeatmik.Domain;
+namespace UptimeTeatmik.Domain.Models;
 
 public class EntityOwner : BaseEntityMetadata
 {

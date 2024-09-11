@@ -1,4 +1,5 @@
 using UptimeTeatmik.Domain;
+using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Application.Businesses.Common;
 

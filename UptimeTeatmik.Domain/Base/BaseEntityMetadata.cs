@@ -1,4 +1,4 @@
-namespace UptimeTeatmik.Domain;
+namespace UptimeTeatmik.Domain.Base;
 
 public class BaseEntityMetadata
 {

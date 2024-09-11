@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Domain;
+using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Infrastructure.Persistence;
 

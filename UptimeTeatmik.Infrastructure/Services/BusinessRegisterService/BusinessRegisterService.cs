@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Domain;
+using UptimeTeatmik.Domain.Models;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
