@@ -7,6 +7,8 @@ namespace UptimeTeatmik.Domain.Models;
 public class Event : BaseEntityMetadata
 {
     [Key] public Guid Id { get; set; }
-    public Guid EntityId { get; set; }
+    public Guid? EntityId { get; set; }
+    [MaxLength(64)] public string? BusinessCode { get; set; }
     public EventType Type { get; set; }
+    public string? Comment { get; set; }
 }
