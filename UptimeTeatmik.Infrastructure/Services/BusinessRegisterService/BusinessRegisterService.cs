@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
-using UptimeTeatmik.Domain;
 using UptimeTeatmik.Domain.Enums;
 using UptimeTeatmik.Domain.Models;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
@@ -40,7 +39,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         var @event = new Event()
         {
             Type = EventType.Created,
-            Comment = $"Fetched {businessCodes.Count} updated businesses on {date:dd:mm:yyyy}"
+            Comment = $"Fetched {businessCodes.Count} updated businesses on {date:dd/MM/yyyy}"
         };
         dbContext.Events.Add(@event);
         await dbContext.SaveChangesAsync();
