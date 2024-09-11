@@ -56,7 +56,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return Task.CompletedTask;
     }
 
-    private async Task UpdateBusinessAsync(string businessCode)
+    public async Task UpdateBusinessAsync(string businessCode)
     {
         var body = businessRegisterBodyGenerator.GenerateDetailDataUrlXmlBody(businessCode);
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
