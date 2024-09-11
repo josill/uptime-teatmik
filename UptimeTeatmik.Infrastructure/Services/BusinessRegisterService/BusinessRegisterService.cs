@@ -64,10 +64,8 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         try
         {
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
-            
-            var existingEntity =
-                await dbContext.Entities
-                    .FirstOrDefaultAsync(b => b.BusinessOrPersonalCode == businessCode);
+
+            var existingEntity = await GetExistingOwner(businessCode);
             
             // TODO: check for changes / updates
             Entity entity;
@@ -117,7 +115,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName); 
             if (existingRelation != null) continue; // Here we would check for changes in relation to the owned business
 
-            var owner = await GetExistingOwner(pe.BusinessOrLastName) ?? MapParsedRelatedEntityToEntity(pe);
+            var owner = await GetExistingOwner(pe.BusinessOrPersonalCode ?? string.Empty) ?? MapParsedRelatedEntityToEntity(pe);
             dbContext.Entities.Add(owner);
 
             var newRelation = new EntityOwner()
@@ -153,12 +151,10 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return existingRelation;
     }
 
-    private async Task<Entity?> GetExistingOwner(string businessOrLastName)
+    private async Task<Entity?> GetExistingOwner(string businessOrPersonalCode)
     {
         var existingOwner = await dbContext.Entities
-            .FirstOrDefaultAsync(e =>
-                e.BusinessOrLastName != null &&
-                e.BusinessOrLastName.ToLower() == businessOrLastName.ToLower());
+            .FirstOrDefaultAsync(e => e.BusinessOrPersonalCode == businessOrPersonalCode.Trim());
 
         return existingOwner;
     }
