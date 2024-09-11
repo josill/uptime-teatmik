@@ -112,6 +112,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         {
             var existingRelation = await GetExistingRelation(ownedEntity.Id, pe.BusinessOrLastName); 
             if (existingRelation != null) continue;
+
+            var existingOwner = await GetExistingOwner(pe.BusinessOrLastName);
+            
         }
         
         // var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
@@ -215,5 +218,15 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             .FirstOrDefaultAsync();
 
         return existingRelation;
+    }
+
+    private async Task<Entity?> GetExistingOwner(string businessOrLastName)
+    {
+        var existingOwner = await dbContext.Entities
+            .FirstOrDefaultAsync(e =>
+                e.BusinessOrLastName != null &&
+                e.BusinessOrLastName.Equals(businessOrLastName, StringComparison.CurrentCultureIgnoreCase));
+
+        return existingOwner;
     }
 }
