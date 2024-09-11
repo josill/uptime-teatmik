@@ -113,8 +113,8 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             var existingRelation = await GetExistingRelation(ownedEntity.Id, pe.BusinessOrLastName); 
             if (existingRelation != null) continue;
 
-            var existingOwner = await GetExistingOwner(pe.BusinessOrLastName);
-            
+            var existingOwner = await GetExistingOwner(pe.BusinessOrLastName) ?? MapParsedRelatedEntityToEntity(pe);
+            // TODO: add to db
         }
         
         // var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
@@ -228,5 +228,20 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 e.BusinessOrLastName.Equals(businessOrLastName, StringComparison.CurrentCultureIgnoreCase));
 
         return existingOwner;
+    }
+
+    private Entity MapParsedRelatedEntityToEntity(ParsedRelatedEntity parsedEntity)
+    {
+        var newOwner = new Entity()
+        {
+            Id = new Guid(),
+            FirstName = parsedEntity.FirstName,
+            BusinessOrLastName = parsedEntity.BusinessOrLastName,
+            BusinessOrPersonalCode = parsedEntity.BusinessOrPersonalCode,
+            EntityType = parsedEntity.EntityType,
+            EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation
+        };
+
+        return newOwner;
     }
 }
