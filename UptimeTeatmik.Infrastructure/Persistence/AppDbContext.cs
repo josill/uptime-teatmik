@@ -9,6 +9,7 @@ public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(op
 {
     public DbSet<Entity> Entities { get; set; }
     public DbSet<EntityOwner> EntityOwners { get; set; }
+    public DbSet<Event> Events { get; set; }
     
     // protected override void OnModelCreating(ModelBuilder modelBuilder)
     // {
