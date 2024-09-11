@@ -102,6 +102,36 @@ namespace UptimeTeatmik.Infrastructure.Migrations
                     b.ToTable("EntityOwners");
                 });
 
+            modelBuilder.Entity("UptimeTeatmik.Domain.Models.Event", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BusinessCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Events");
+                });
+
             modelBuilder.Entity("UptimeTeatmik.Domain.Models.EntityOwner", b =>
                 {
                     b.HasOne("UptimeTeatmik.Domain.Models.Entity", "Owned")

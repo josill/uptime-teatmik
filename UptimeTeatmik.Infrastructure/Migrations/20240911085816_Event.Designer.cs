@@ -12,8 +12,8 @@ using UptimeTeatmik.Infrastructure.Persistence;
 namespace UptimeTeatmik.Infrastructure.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20240911083707_UpdatedEvent")]
-    partial class UpdatedEvent
+    [Migration("20240911085816_Event")]
+    partial class Event
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -103,6 +103,36 @@ namespace UptimeTeatmik.Infrastructure.Migrations
                     b.HasIndex("OwnerId");
 
                     b.ToTable("EntityOwners");
+                });
+
+            modelBuilder.Entity("UptimeTeatmik.Domain.Models.Event", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BusinessCode")
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<string>("Comment")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Events");
                 });
 
             modelBuilder.Entity("UptimeTeatmik.Domain.Models.EntityOwner", b =>
