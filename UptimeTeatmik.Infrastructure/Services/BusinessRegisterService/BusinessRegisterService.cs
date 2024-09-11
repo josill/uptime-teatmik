@@ -69,7 +69,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             Entity entity;
             if (existingEntity != null)
             {
-                // TODO: check for changes / updates not just overwrite them
                 UpdateExistingEntity(existingEntity, parsedEntity);
                 entity = existingEntity;
                 dbContext.Entities.Update(existingEntity);
@@ -146,11 +145,17 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
 
     private void UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
     {
-        oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
-        oldEntity.FormattedJson = newEntity.FormattedJson;
-        oldEntity.EntityType = newEntity.EntityType;
-        oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
+        if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName)
+            oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
 
+        if (oldEntity.FormattedJson != newEntity.FormattedJson)
+            oldEntity.FormattedJson = newEntity.FormattedJson;
+
+        if (oldEntity.EntityType != newEntity.EntityType)
+            oldEntity.EntityType = newEntity.EntityType;
+
+        if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation)
+            oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
     }
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
