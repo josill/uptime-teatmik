@@ -1,17 +1,20 @@
-# Use the official Microsoft .NET SDK image as a build stage
-FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-
-# Copy the project file(s) and restore dependencies
-COPY ["*.csproj", "./"]
-RUN dotnet restore
-
-# Copy everything else and build the project
-COPY . .
-RUN dotnet publish -c Release -o /app/publish
-
-# Build runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:6.0
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
 WORKDIR /app
-COPY --from=build /app/publish .
+
+COPY ["src/UptimeTeatmik.Api/UptimeTeatmik.Api.csproj", "src/UptimeTeatmik.Api/"]
+COPY ["src/UptimeTeatmik.Contracts/UptimeTeatmik.Contracts.csproj", "src/UptimeTeatmik.Contracts/"]
+COPY ["src/UptimeTeatmik.Infrastructure/UptimeTeatmik.Infrastructure.csproj", "src/UptimeTeatmik.Infrastructure/"]
+COPY ["src/UptimeTeatmik.Application/UptimeTeatmik.Application.csproj", "src/UptimeTeatmik.Application/"]
+COPY ["src/UptimeTeatmik.Domain/UptimeTeatmik.Domain.csproj", "src/UptimeTeatmik.Domain/"]
+COPY ["src/UptimeTeatmik.Tests/UptimeTeatmik.Tests.csproj", "src/UptimeTeatmik.Tests/"]
+
+RUN dotnet restore "src/UptimeTeatmik.Api/UptimeTeatmik.Api.csproj"
+
+COPY src/ ./src
+
+RUN dotnet publish "src/UptimeTeatmik.Api/UptimeTeatmik.Api.csproj" -c Release -o out
+
+FROM mcr.microsoft.com/dotnet/aspnet:8.0
+WORKDIR /app
+COPY --from=build-env /app/out .
 ENTRYPOINT ["dotnet", "UptimeTeatmik.Api.dll"]
