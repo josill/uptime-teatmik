@@ -36,6 +36,14 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             if (businessCode == null) continue;
             businessCodes.Add(businessCode);
         }
+
+        var @event = new Event()
+        {
+            Type = EventType.Created,
+            Comment = $"Fetched {businessCodes.Count} updated businesses on {date:dd:mm:yyyy}"
+        };
+        dbContext.Events.Add(@event);
+        await dbContext.SaveChangesAsync();
         
         return businessCodes;
     }
