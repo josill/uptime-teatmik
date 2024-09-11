@@ -77,9 +77,10 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             var existingEntity = await GetExistingOwner(businessCode);
             
             Entity entity;
+            var wasUpdated = false;
             if (existingEntity != null)
             {
-                UpdateExistingEntity(existingEntity, parsedEntity);
+                wasUpdated = UpdateExistingEntity(existingEntity, parsedEntity);
                 entity = existingEntity;
                 dbContext.Entities.Update(existingEntity);
             }
@@ -90,6 +91,16 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 dbContext.Entities.Add(newEntity);
             }
 
+            var @event = new Event()
+            {
+                Id = Guid.NewGuid(),
+                EntityId = entity.Id,
+                BusinessCode = businessCode,
+                Type = wasUpdated ? EventType.Updated : EventType.Created,
+                Comment = wasUpdated ? "Business data changed" : "Business created"
+            };
+            dbContext.Events.Add(@event);
+            
             await UpdateBusinessRelatedPersons(responseContent, entity);
             await dbContext.SaveChangesAsync();
         }
@@ -161,19 +172,35 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return existingOwner;
     }
 
-    private void UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
+    private bool UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
     {
+        bool hasChanged = false;
+
         if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName)
+        {
             oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
+            hasChanged = true;
+        }
 
         if (oldEntity.FormattedJson != newEntity.FormattedJson)
+        {
             oldEntity.FormattedJson = newEntity.FormattedJson;
+            hasChanged = true;
+        }
 
         if (oldEntity.EntityType != newEntity.EntityType)
+        {
             oldEntity.EntityType = newEntity.EntityType;
+            hasChanged = true;
+        }
 
         if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation)
+        {
             oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
+            hasChanged = true;
+        }
+
+        return hasChanged;
     }
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
