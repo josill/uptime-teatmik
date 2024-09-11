@@ -7,6 +7,9 @@ using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Domain;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
@@ -45,6 +48,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             try
             {
                 await UpdateBusinessAsync(businessCode);
+                break;
             }
             catch (Exception ex)
             {
@@ -87,7 +91,8 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                     BusinessOrLastName = parsedEntity.LastOrBusinessName,
                     EntityType = parsedEntity.EntityType,
                     EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
-                    FormattedJson = parsedEntity.FormattedJson
+                    FormattedJson = parsedEntity.FormattedJson,
+                    UniqueCode = parsedEntity.UniqueCode
                 };
 
                 entity = newEntity;
@@ -95,9 +100,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             }
 
             await UpdateBusinessRelatedPersons(responseContent, entity);
-            await dbContext.SaveChangesAsync();
+            // await dbContext.SaveChangesAsync();
         }
-        catch (JsonException)
+        catch (Exception)
         {
             // TODO: Correctly handle the error
         }
@@ -113,6 +118,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName); 
             if (existingRelation != null) continue; // Here we would check for changes in relation to the owned business
 
+            Console.WriteLine($"business or last name: {pe.BusinessOrLastName}");
             var owner = await GetExistingOwner(pe.BusinessOrLastName) ?? MapParsedRelatedEntityToEntity(pe);
             dbContext.Entities.Add(owner);
 
@@ -126,7 +132,32 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             };
             dbContext.EntityOwners.Add(newRelation);
 
-            await dbContext.SaveChangesAsync();
+            // Log the owner and relation in JSON format
+            var ownerJson = JsonSerializer.Serialize(owner, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReferenceHandler = ReferenceHandler.Preserve
+            });
+            Console.WriteLine("Owner JSON:");
+            Console.WriteLine(ownerJson);
+            
+            var ownedJson = JsonSerializer.Serialize(owned, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReferenceHandler = ReferenceHandler.Preserve
+            });
+            Console.WriteLine("Owned JSON:");
+            Console.WriteLine(ownedJson);
+
+            var relationJson = JsonSerializer.Serialize(newRelation, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                ReferenceHandler = ReferenceHandler.Preserve
+            });
+            Console.WriteLine("Relation JSON:");
+            Console.WriteLine(relationJson);
+            
+            // await dbContext.SaveChangesAsync();
         }
     }
     
@@ -156,12 +187,12 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         var existingOwner = await dbContext.Entities
             .FirstOrDefaultAsync(e =>
                 e.BusinessOrLastName != null &&
-                e.BusinessOrLastName.Equals(businessOrLastName, StringComparison.CurrentCultureIgnoreCase));
+                e.BusinessOrLastName.ToLower() == businessOrLastName.ToLower());
 
         return existingOwner;
     }
 
-    private Entity MapParsedRelatedEntityToEntity(ParsedRelatedEntity parsedEntity)
+    private static Entity MapParsedRelatedEntityToEntity(ParsedRelatedEntity parsedEntity)
     {
         var newOwner = new Entity()
         {
@@ -170,7 +201,8 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             BusinessOrLastName = parsedEntity.BusinessOrLastName,
             BusinessOrPersonalCode = parsedEntity.BusinessOrPersonalCode,
             EntityType = parsedEntity.EntityType,
-            EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation
+            EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
+            UniqueCode = parsedEntity.UniqueCode
         };
 
         return newOwner;

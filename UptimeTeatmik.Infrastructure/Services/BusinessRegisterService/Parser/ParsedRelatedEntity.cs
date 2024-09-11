@@ -19,7 +19,7 @@ namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser
         public string BusinessOrLastName { get; }
         public string? EntityType { get; }
         public string? EntityTypeAbbreviation { get; }
-        public string? UniqueCode { get; }
+        public string UniqueCode { get; }
         public string? FormattedJson { get; set; }
     }
 }

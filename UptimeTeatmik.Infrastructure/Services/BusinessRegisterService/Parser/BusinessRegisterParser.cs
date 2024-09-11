@@ -36,8 +36,6 @@ public static class BusinessRegisterParser
         if (token == null || token.Type == JTokenType.Null)
             return null;
 
-        Console.WriteLine($"Token: {token}, Type: {token.Type}");
-
         if (token.Type == JTokenType.Object && !token.HasValues)
             return null;  // Return null for empty objects
 
