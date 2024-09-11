@@ -107,76 +107,93 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
     {
         var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
         var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
+
+        foreach (var pe in parsedRelatedEntities)
+        {
+            var existingRelation = await GetExistingRelation(ownedEntity.Id, pe.BusinessOrLastName); 
+            if (existingRelation != null) continue;
+        }
         
-        var entityUniqueCodes = parsedRelatedEntities.Select(pre => pre.UniqueCode).ToList();
-
-        var existingOwners = await dbContext.Entities
-            .Where(e => entityUniqueCodes.Contains(e.UniqueCode))
-            .ToDictionaryAsync(e => e.UniqueCode, e => e);
-
-        var existingRelations = await dbContext.EntityOwners
-            .Include(eo => eo.Owner)
-            .Where(eo => eo.Owned.Id == ownedEntity.Id)
-            .ToDictionaryAsync(eo => eo.Owner.UniqueCode, eo => eo);
-
-        List<Entity> newOwners = [];
-        List<EntityOwner> newRelations = [];
-        List<EntityOwner> updatedRelations = [];
-
-        foreach (var parsedRelatedEntity in parsedRelatedEntities)
-        {
-            if (!existingOwners.TryGetValue(parsedRelatedEntity.UniqueCode, out var owner))
-            {
-                owner = new Entity
-                {
-                    Id = Guid.NewGuid(),
-                    FirstName = parsedRelatedEntity.FirstName,
-                    BusinessOrLastName = parsedRelatedEntity.BusinessOrLastName,
-                    BusinessOrPersonalCode = parsedRelatedEntity.BusinessOrPersonalCode,
-                    EntityTypeAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation,
-                    EntityType = parsedRelatedEntity.EntityType
-                };
-                newOwners.Add(owner);
-                existingOwners[parsedRelatedEntity.BusinessOrPersonalCode] = owner;
-            }
-            
-            if (!existingRelations.TryGetValue(parsedRelatedEntity.BusinessOrPersonalCode, out var relation))
-            {
-                relation = new EntityOwner
-                {
-                    Id = Guid.NewGuid(),
-                    Owned = ownedEntity,
-                    Owner = owner,
-                    RoleInEntity = parsedRelatedEntity.EntityType,
-                    RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation
-                };
-                newRelations.Add(relation);
-            }
-            else if (relation.RoleInEntity != parsedRelatedEntity.EntityType || 
-                     relation.RoleInEntityAbbreviation != parsedRelatedEntity.EntityTypeAbbreviation)
-            {
-                relation.RoleInEntity = parsedRelatedEntity.EntityType;
-                relation.RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation;
-                updatedRelations.Add(relation);
-            }
-        }
-
-        if (newOwners.Any())
-        {
-            await dbContext.Entities.AddRangeAsync(newOwners);
-        }
-
-        if (newRelations.Any())
-        {
-            await dbContext.EntityOwners.AddRangeAsync(newRelations);
-        }
-
-        if (updatedRelations.Any())
-        {
-            dbContext.EntityOwners.UpdateRange(updatedRelations);
-        }
-
-        await dbContext.SaveChangesAsync();
+        // var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
+        // var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
+        //
+        // var entityUniqueCodes = parsedRelatedEntities.Select(pre => pre.UniqueCode).ToList();
+        //
+        // var existingOwners = await dbContext.Entities
+        //     .Where(e => entityUniqueCodes.Contains(e.UniqueCode))
+        //     .ToDictionaryAsync(e => e.UniqueCode, e => e);
+        //
+        // var existingRelations = await dbContext.EntityOwners
+        //     .Include(eo => eo.Owner)
+        //     .Where(eo => eo.Owned.Id == ownedEntity.Id)
+        //     .ToDictionaryAsync(eo => eo.Owner.UniqueCode, eo => eo);
+        //
+        // List<Entity> newOwners = [];
+        // List<EntityOwner> newRelations = [];
+        // List<EntityOwner> updatedRelations = [];
+        //
+        // foreach (var parsedRelatedEntity in parsedRelatedEntities)
+        // {
+        //     if (!existingOwners.TryGetValue(parsedRelatedEntity.UniqueCode, out var owner))
+        //     {
+        //         Console.WriteLine("===================");
+        //         Console.WriteLine(parsedRelatedEntity.UniqueCode);
+        //         Console.WriteLine("===================");
+        //         owner = new Entity
+        //         {
+        //             Id = Guid.NewGuid(),
+        //             FirstName = parsedRelatedEntity.FirstName,
+        //             BusinessOrLastName = parsedRelatedEntity.BusinessOrLastName,
+        //             BusinessOrPersonalCode = parsedRelatedEntity.BusinessOrPersonalCode,
+        //             EntityTypeAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation,
+        //             EntityType = parsedRelatedEntity.EntityType,
+        //             UniqueCode = parsedRelatedEntity.UniqueCode
+        //         };
+        //         newOwners.Add(owner);
+        //         // existingOwners[parsedRelatedEntity.BusinessOrPersonalCode] = owner;
+        //     }
+        //     
+        //     if (!existingRelations.TryGetValue(parsedRelatedEntity.UniqueCode, out var relation))
+        //     {
+        //         // TODO: the owner or ownerEntity is some how null here and it is causing a db save error
+        //         // if you change parsedRelatedEntity.UniqueCode to parsedRelatedEntity.BusinessOrPersonalCode it works because it doesnt make it here 
+        //         Console.WriteLine($"Owner is null: {owner}");
+        //         Console.WriteLine($"Owned is null: {ownedEntity}");
+        //         relation = new EntityOwner
+        //         {
+        //             Id = Guid.NewGuid(),
+        //             Owned = ownedEntity,
+        //             Owner = owner,
+        //             RoleInEntity = parsedRelatedEntity.EntityType,
+        //             RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation
+        //         };
+        //         newRelations.Add(relation);
+        //     }
+        //     else if (relation.RoleInEntity != parsedRelatedEntity.EntityType || 
+        //              relation.RoleInEntityAbbreviation != parsedRelatedEntity.EntityTypeAbbreviation)
+        //     {
+        //         relation.RoleInEntity = parsedRelatedEntity.EntityType;
+        //         relation.RoleInEntityAbbreviation = parsedRelatedEntity.EntityTypeAbbreviation;
+        //         updatedRelations.Add(relation);
+        //     }
+        // }
+        //
+        // // if (newOwners.Any())
+        // // {
+        // //     await dbContext.Entities.AddRangeAsync(newOwners);
+        // // }
+        // //
+        // // if (newRelations.Any())
+        // // {
+        // //     await dbContext.EntityOwners.AddRangeAsync(newRelations);
+        // // }
+        // //
+        // // if (updatedRelations.Any())
+        // // {
+        // //     dbContext.EntityOwners.UpdateRange(updatedRelations);
+        // // }
+        //
+        // await dbContext.SaveChangesAsync();
     }
     
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
@@ -188,5 +205,15 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         
         var responseContent = await response.Content.ReadAsStringAsync();
         return responseContent;
+    }
+
+    private async Task<EntityOwner?> GetExistingRelation(Guid ownedId, string ownerBusinessOrLastName)
+    {
+        var existingRelation = await dbContext.EntityOwners
+            .Include(eo => eo.Owner)
+            .Where(eo => eo.OwnedId == ownedId && eo.Owner.BusinessOrLastName == ownerBusinessOrLastName)
+            .FirstOrDefaultAsync();
+
+        return existingRelation;
     }
 }

@@ -13,5 +13,5 @@ public class Entity : BaseEntityMetadata
     [MaxLength(256)] public string? EntityType { get; set; }
     public string? FormattedJson { get; set; }
 
-    [MaxLength(448)] public string UniqueCode { get; private set; } = null!;
+    [MaxLength(448)] public string UniqueCode { get; set; } = null!;
 }
