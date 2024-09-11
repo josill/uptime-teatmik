@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Default values
-settings_file="appsettings.json"
+settings_file="src/UptimeTeatmik.Api/appsettings.json"
 env_file=".env"
 environment="Production"
 

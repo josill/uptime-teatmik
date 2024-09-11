@@ -4,4 +4,4 @@ using UptimeTeatmik.Application.Businesses.Common;
 
 namespace UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 
-public record GetBusinessQuery(Guid BusinessId) : IRequest<ErrorOr<BusinessResult?>>;
+public record GetBusinessQuery(Guid BusinessId) : IRequest<ErrorOr<DetailedBusinessResult?>>;

@@ -23,7 +23,7 @@
   </ItemGroup>
 
   <Target Name="UpdateAppSettings" BeforeTargets="Build">
-    <Exec Command="bash $(MSBuildProjectDirectory)/../launchsettings.sh --settings $(MSBuildProjectDirectory)/appsettings.json --env $(MSBuildProjectDirectory)/../.env --environment $(Configuration)" />
+    <Exec Command="bash ../../launchsettings.sh --settings $(ProjectDir)appsettings.json --env ../../.env --environment $(Configuration)" />
   </Target>
 
 </Project>

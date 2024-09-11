@@ -85,6 +85,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             
             Entity entity;
             var wasUpdated = false;
+            var wasCreated = false;
             if (existingEntity != null)
             {
                 wasUpdated = UpdateExistingEntity(existingEntity, parsedEntity);
@@ -93,23 +94,27 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             }
             else
             {
+                wasCreated = true;
                 var newEntity = MapParsedEntityToEntity(parsedEntity);
                 entity = newEntity;
                 dbContext.Entities.Add(newEntity);
             }
 
-            var @event = new Event()
+            if (wasCreated || wasUpdated)
             {
-                Id = Guid.NewGuid(),
-                EntityId = entity.Id,
-                BusinessCode = businessCode,
-                Type = wasUpdated ? EventType.Updated : EventType.Created,
-                Comment = wasUpdated ? "Business data changed" : "Business created"
-            };
-            dbContext.Events.Add(@event);
+                var @event = new Event()
+                {
+                    Id = Guid.NewGuid(),
+                    EntityId = entity.Id,
+                    BusinessCode = businessCode,
+                    Type = wasUpdated ? EventType.Updated : EventType.Created,
+                    Comment = wasUpdated ? $"Business {entity.BusinessOrLastName} data changed" : $"Business {entity.BusinessOrLastName} created"
+                };
+                dbContext.Events.Add(@event);
+            }
+            await dbContext.SaveChangesAsync();
             
             await UpdateBusinessRelatedPersons(responseContent, entity);
-            await dbContext.SaveChangesAsync();
         }
         catch (Exception ex)
         {
