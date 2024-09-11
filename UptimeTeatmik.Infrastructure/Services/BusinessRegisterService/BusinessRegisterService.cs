@@ -48,7 +48,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             try
             {
                 await UpdateBusinessAsync(businessCode);
-                break;
             }
             catch (Exception ex)
             {
@@ -100,7 +99,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             }
 
             await UpdateBusinessRelatedPersons(responseContent, entity);
-            // await dbContext.SaveChangesAsync();
+            await dbContext.SaveChangesAsync();
         }
         catch (Exception)
         {
@@ -118,7 +117,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName); 
             if (existingRelation != null) continue; // Here we would check for changes in relation to the owned business
 
-            Console.WriteLine($"business or last name: {pe.BusinessOrLastName}");
             var owner = await GetExistingOwner(pe.BusinessOrLastName) ?? MapParsedRelatedEntityToEntity(pe);
             dbContext.Entities.Add(owner);
 
@@ -131,33 +129,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 RoleInEntityAbbreviation = pe.EntityTypeAbbreviation
             };
             dbContext.EntityOwners.Add(newRelation);
-
-            // Log the owner and relation in JSON format
-            var ownerJson = JsonSerializer.Serialize(owner, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReferenceHandler = ReferenceHandler.Preserve
-            });
-            Console.WriteLine("Owner JSON:");
-            Console.WriteLine(ownerJson);
-            
-            var ownedJson = JsonSerializer.Serialize(owned, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReferenceHandler = ReferenceHandler.Preserve
-            });
-            Console.WriteLine("Owned JSON:");
-            Console.WriteLine(ownedJson);
-
-            var relationJson = JsonSerializer.Serialize(newRelation, new JsonSerializerOptions
-            {
-                WriteIndented = true,
-                ReferenceHandler = ReferenceHandler.Preserve
-            });
-            Console.WriteLine("Relation JSON:");
-            Console.WriteLine(relationJson);
-            
-            // await dbContext.SaveChangesAsync();
         }
     }
     

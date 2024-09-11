@@ -1,5 +1,4 @@
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace UptimeTeatmik.Domain;
 
@@ -12,6 +11,5 @@ public class Entity : BaseEntityMetadata
     [MaxLength(32)] public string? EntityTypeAbbreviation { get; set; }
     [MaxLength(256)] public string? EntityType { get; set; }
     public string? FormattedJson { get; set; }
-
     [MaxLength(448)] public string UniqueCode { get; set; } = null!;
 }
