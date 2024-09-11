@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Domain;
+using UptimeTeatmik.Domain.Enums;
 using UptimeTeatmik.Domain.Models;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
 
@@ -50,7 +51,15 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to update business with code {businessCode} with exception: {ex}");
+                var @event = new Event()
+                {
+                    Id = Guid.NewGuid(),
+                    BusinessCode = businessCode,
+                    Type = EventType.UpdateFailed,
+                    Comment = ex.Message
+                };
+                dbContext.Events.Add(@event);
+                dbContext.SaveChangesAsync();
             }
         }
 
@@ -84,9 +93,17 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             await UpdateBusinessRelatedPersons(responseContent, entity);
             await dbContext.SaveChangesAsync();
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // TODO: Correctly handle the error
+            var @event = new Event()
+            {
+                Id = Guid.NewGuid(),
+                BusinessCode = businessCode,
+                Type = EventType.UpdateFailed,
+                Comment = ex.Message
+            };
+            dbContext.Events.Add(@event);
+            await dbContext.SaveChangesAsync();
         }
     }
     
