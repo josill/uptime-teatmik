@@ -13,7 +13,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
 {
     public async Task RunBusinessUpdateJob()
     {
-        var dateNow = DateTime.Now;
+        var dateNow = DateTime.UtcNow;
         await FetchUpdatedBusinessCodesAsync(dateNow);
     }
     
