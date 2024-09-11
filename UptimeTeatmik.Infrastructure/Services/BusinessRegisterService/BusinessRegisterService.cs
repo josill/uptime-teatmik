@@ -2,14 +2,10 @@ using System.Text;
 using System.Xml.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Domain;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
@@ -64,34 +60,19 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         try
         {
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
-
             var existingEntity = await GetExistingOwner(businessCode);
             
-            // TODO: check for changes / updates
             Entity entity;
             if (existingEntity != null)
             {
-                existingEntity.BusinessOrLastName = parsedEntity.LastOrBusinessName;
-                existingEntity.FormattedJson = parsedEntity.FormattedJson;
-                existingEntity.EntityType = parsedEntity.EntityType;
-                existingEntity.EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation;
-
+                // TODO: check for changes / updates not just overwrite them
+                UpdateExistingEntity(existingEntity, parsedEntity);
                 entity = existingEntity;
                 dbContext.Entities.Update(existingEntity);
             }
             else
             {
-                var newEntity = new Entity()
-                {
-                    Id = Guid.NewGuid(),
-                    BusinessOrPersonalCode = businessCode,
-                    BusinessOrLastName = parsedEntity.LastOrBusinessName,
-                    EntityType = parsedEntity.EntityType,
-                    EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
-                    FormattedJson = parsedEntity.FormattedJson,
-                    UniqueCode = parsedEntity.UniqueCode
-                };
-
+                var newEntity = MapParsedEntityToEntity(parsedEntity);
                 entity = newEntity;
                 dbContext.Entities.Add(newEntity);
             }
@@ -159,9 +140,35 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return existingOwner;
     }
 
+    private void UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
+    {
+        oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
+        oldEntity.FormattedJson = newEntity.FormattedJson;
+        oldEntity.EntityType = newEntity.EntityType;
+        oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
+
+    }
+
+    private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
+    {
+        var newEntity = new Entity()
+        {
+            Id = Guid.NewGuid(),
+            // BusinessOrPersonalCode = businessCode,
+            BusinessOrPersonalCode = parsedEntity.PersonalOrBusinessCode,
+            BusinessOrLastName = parsedEntity.BusinessOrLastName,
+            EntityType = parsedEntity.EntityType,
+            EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
+            FormattedJson = parsedEntity.FormattedJson,
+            UniqueCode = parsedEntity.UniqueCode
+        };
+
+        return newEntity;
+    }
+
     private static Entity MapParsedRelatedEntityToEntity(ParsedRelatedEntity parsedEntity)
     {
-        var newOwner = new Entity()
+        var newEntity = new Entity()
         {
             Id = new Guid(),
             FirstName = parsedEntity.FirstName,
@@ -172,6 +179,6 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
             UniqueCode = parsedEntity.UniqueCode
         };
 
-        return newOwner;
+        return newEntity;
     }
 }
