@@ -1,5 +1,6 @@
 using System.Text;
 using System.Xml.Linq;
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using UptimeTeatmik.Application.Common.Interfaces;
@@ -37,19 +38,22 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return businessCodes;
     }
 
-    public async Task UpdateBusinessesAsync(List<string> businessesCodes)
+    public Task UpdateBusinessesAsync(List<string> businessesCodes)
     {
         foreach (var businessCode in businessesCodes)
         {
             try
             {
-                await UpdateBusinessAsync(businessCode);
+                // Ideally we would use a Batch job here, but it is a paid feature
+                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode));
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Failed to update business with code {businessCode} with exception: {ex}");
             }
         }
+
+        return Task.CompletedTask;
     }
 
     private async Task UpdateBusinessAsync(string businessCode)
