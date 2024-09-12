@@ -11,11 +11,6 @@ postgres-logs/
 src/UptimeTeatmik.Api/appsettings.Development.json
 src/UptimeTeatmik.Api/appsettings.json
 
-# Sonarqube
-.sonar/
-.scannerwork/
-.sonarlint/
-
 # User-specific files
 *.rsuser
 *.suo
