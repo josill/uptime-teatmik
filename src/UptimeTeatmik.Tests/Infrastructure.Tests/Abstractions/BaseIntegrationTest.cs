@@ -1,27 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
-using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
-using UptimeTeatmik.Infrastructure.Persistence;
-using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
+using Xunit.Abstractions;
 
 namespace UptimeTeatmik.Tests.Infrastructure.Tests.Abstractions;
 
-public class BaseIntegrationTest : IClassFixture<IntegrationInfrastructureTestFactory>, IDisposable
+[Collection("Database collection")]
+public class IntegrationTestBase(IntegrationTestWebAppFactory factory, ITestOutputHelper testOutputHelper)
+    : IClassFixture<IntegrationTestWebAppFactory>
 {
-    private readonly IServiceScope _scope;
-    protected IBusinessRegisterService BusinessRegisterService { get; }
-    protected AppDbContext DbContext { get; }
-    // protected Faker Faker { get; }
-
-    protected BaseIntegrationTest(IntegrationInfrastructureTestFactory factory)
-    {
-        _scope = factory.Services.CreateScope();
-        BusinessRegisterService = _scope.ServiceProvider.GetRequiredService<BusinessRegisterService>();
-        DbContext = _scope.ServiceProvider.GetRequiredService<AppDbContext>();
-        // Faker = new Faker();
-    }
-    
-    public void Dispose()
-    {
-        _scope.Dispose();
-    }
+    protected HttpClient HttpClient = factory.CreateClient();
+    protected readonly ITestOutputHelper TestOutputHelper = testOutputHelper;
 }
