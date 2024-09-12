@@ -35,4 +35,8 @@
     <ProjectReference Include="..\UptimeTeatmik.Application\UptimeTeatmik.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Infrastructure.Tests\" />
+  </ItemGroup>
+
 </Project>

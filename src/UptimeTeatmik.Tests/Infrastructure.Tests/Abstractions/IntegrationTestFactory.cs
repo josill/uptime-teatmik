@@ -4,13 +4,13 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Testcontainers.PostgreSql;
 using UptimeTeatmik.Infrastructure.Persistence;
 
-namespace UptimeTeatmik.Tests.Abstractions;
+namespace UptimeTeatmik.Tests.Infrastructure.Tests.Abstractions;
 
-public class IntegrationTestFactory : IAsyncLifetime
+public class IntegrationInfrastructureTestFactory : IAsyncLifetime
 {
     public IServiceProvider Services { get; private set; }
 
-    public IntegrationTestFactory()
+    public IntegrationInfrastructureTestFactory()
     {
         var services = new ServiceCollection();
 
