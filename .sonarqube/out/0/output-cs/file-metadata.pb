@@ -1,0 +1,10 @@
+ó
+ã/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/obj/Debug/net8.0/UptimeTeatmik.Domain.AssemblyInfo.csutf-8°
+ï/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.csutf-8ô
+ç/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/obj/Debug/net8.0/UptimeTeatmik.Domain.GlobalUsings.g.csutf-8n
+e/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/Models/Event.csutf-8t
+k/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/Models/EntityOwner.csutf-8o
+f/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/Models/Entity.csutf-8x
+o/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/Errors/Errors.Business.csutf-8q
+h/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/Enums/EventType.csutf-8y
+p/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Domain/Base/BaseEntityMetadata.csutf-8

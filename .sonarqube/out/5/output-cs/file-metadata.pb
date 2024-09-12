@@ -1,0 +1,11 @@
+¤
+˜/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/obj/Debug/net8.0/UptimeTeatmik.Api.MvcApplicationPartsAssemblyInfo.csutf-8‘
+…/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/obj/Debug/net8.0/UptimeTeatmik.Api.AssemblyInfo.csutf-8ž
+’/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/obj/Debug/net8.0/.NETCoreApp,Version=v8.0.AssemblyAttributes.csutf-8“
+‡/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/obj/Debug/net8.0/UptimeTeatmik.Api.GlobalUsings.g.csutf-8f
+]/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/Program.csutf-8Ž
+„/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/Controllers/UptimeTeatmikProblemDetailsFactory.csutf-8
+v/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/Controllers/HttpContextItemsKeys.csutf-8{
+r/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/Controllers/ErrorsController.csutf-8}
+t/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/Controllers/BusinessController.csutf-8x
+o/Users/josill/Desktop/Projects/uptime-teatmik/uptime-teatmik/src/UptimeTeatmik.Api/Controllers/ApiController.csutf-8
