@@ -10,7 +10,7 @@
     <!--  Security vulnerability package updates  -->
     <PackageReference Include="System.Text.Encodings.Web" Version="6.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="System.Security.Cryptography.Xml" Version="6.0.1" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.0" />
     
     <PackageReference Include="ErrorOr" Version="2.0.1" />
     <PackageReference Include="Hangfire.Dashboard.BasicAuthorization" Version="1.0.2" />
