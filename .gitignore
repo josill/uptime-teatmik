@@ -3,15 +3,18 @@
 ##
 ## Get latest from `dotnet new gitignore`
 
+# Postgres
 postgres-data/
 postgres-logs/
 
-# appsettings
+# Appsettings
 src/UptimeTeatmik.Api/appsettings.Development.json
 src/UptimeTeatmik.Api/appsettings.json
 
-# dotenv files
-.env
+# Sonarqube
+.sonar/
+.scannerwork/
+.sonarlint/
 
 # User-specific files
 *.rsuser
