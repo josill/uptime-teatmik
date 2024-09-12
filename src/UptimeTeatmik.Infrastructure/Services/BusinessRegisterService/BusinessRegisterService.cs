@@ -47,9 +47,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return businessCodes;
     }
 
-    public Task UpdateBusinessesAsync(List<string> businessesCodes)
+    public Task UpdateBusinessesAsync(List<string> businessCodes)
     {
-        foreach (var businessCode in businessesCodes)
+        foreach (var businessCode in businessCodes)
         {
             try
             {
@@ -184,9 +184,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
         return existingOwner;
     }
 
-    private bool UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
+    private static bool UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
     {
-        bool hasChanged = false;
+        var hasChanged = false;
 
         if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName)
         {
@@ -236,7 +236,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
     {
         var newEntity = new Entity()
         {
-            Id = new Guid(),
+            Id = Guid.NewGuid(),
             FirstName = parsedEntity.FirstName,
             BusinessOrLastName = parsedEntity.BusinessOrLastName,
             BusinessOrPersonalCode = parsedEntity.BusinessOrPersonalCode,

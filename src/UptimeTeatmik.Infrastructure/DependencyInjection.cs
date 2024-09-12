@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Npgsql;
-using UptimeTeatmik.Application.Common;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure.Persistence;
@@ -74,8 +73,6 @@ public static class DependencyInjection
         var database = Environment.GetEnvironmentVariable("DB_NAME") ?? persistenceSettings.Database;
 
         var connectionString = $"Host={host};Port={port};Username={username};Password={password};Database={database}";
-        // var connectionString =
-        //     "Host=localhost;Port=5432;Username=josill;Password=uptime_teatmik;Database=uptime-teatmik";
 
         services.AddHangfire((_, configuration) => configuration
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
