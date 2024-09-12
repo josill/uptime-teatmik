@@ -7,8 +7,8 @@ postgres-data/
 postgres-logs/
 
 # appsettings
-UptimeTeatmik.Api/appsettings.Development.json
-UptimeTeatmik.Api/appsettings.json
+src/UptimeTeatmik.Api/appsettings.Development.json
+src/UptimeTeatmik.Api/appsettings.json
 
 # dotenv files
 .env
