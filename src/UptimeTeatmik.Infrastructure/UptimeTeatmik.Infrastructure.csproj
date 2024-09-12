@@ -5,6 +5,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--  Security vulnerability package updates  -->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.9" />
     <PackageReference Include="Hangfire.AspNetCore" Version="1.8.*" />
     <PackageReference Include="Hangfire.Core" Version="1.8.14" />
