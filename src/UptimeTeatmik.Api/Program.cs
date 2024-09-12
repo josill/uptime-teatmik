@@ -1,10 +1,12 @@
 using Hangfire;
 using Hangfire.Dashboard.BasicAuthorization;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Api.Controllers;
 using UptimeTeatmik.Application;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure;
+using UptimeTeatmik.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 {
@@ -31,6 +33,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 var app = builder.Build();
 {
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var isDbCreated = dbContext.Database.EnsureCreated();
+        if (isDbCreated) dbContext.Database.Migrate();
+    }
+    
     if (app.Environment.IsDevelopment())
     {
         // app.UseSwagger();
