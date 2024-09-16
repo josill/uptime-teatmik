@@ -43,7 +43,8 @@ public class BusinessRegisterService(
 
         BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(EventType.Created,
             $"Started fetching {businessCodes.Count} updated businesses on {date:dd/MM/yyyy HH:mm:ss}"));
-
+        await UpdateBusinessesAsync(businessCodes);
+        
         return businessCodes;
     }
 
