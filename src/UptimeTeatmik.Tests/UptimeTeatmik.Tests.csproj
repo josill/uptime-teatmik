@@ -11,6 +11,8 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.8" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
     <PackageReference Include="Moq" />
     <PackageReference Include="Respawn" Version="6.2.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
@@ -41,6 +43,10 @@
 
   <ItemGroup>
     <PackageVersion Update="FluentAssertions" Version="6.12.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Integrations\" />
   </ItemGroup>
 
 </Project>

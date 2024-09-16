@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <!--  Security vulnerability package updates  -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     
     <PackageReference Include="Hangfire.PostgreSql" Version="1.20.9" />

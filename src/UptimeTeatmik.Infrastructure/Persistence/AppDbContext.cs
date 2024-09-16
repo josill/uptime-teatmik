@@ -4,9 +4,18 @@ using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Infrastructure.Persistence;
 
-public class AppDbContext(DbContextOptions<AppDbContext> options) : DbContext(options), IAppDbContext
+public class AppDbContext : DbContext, IAppDbContext
 {
-    public DbSet<Entity> Entities { get; set; }
-    public DbSet<EntityOwner> EntityOwners { get; set; }
-    public DbSet<Event> Events { get; set; }
+    public AppDbContext()
+    {
+    }
+
+    public AppDbContext(DbContextOptions<AppDbContext> options)
+        : base(options)
+    {
+    }
+
+    public virtual DbSet<Entity> Entities { get; set; }
+    public virtual DbSet<EntityOwner> EntityOwners { get; set; }
+    public virtual DbSet<Event> Events { get; set; }
 }
