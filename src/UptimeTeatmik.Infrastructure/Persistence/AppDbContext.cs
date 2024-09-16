@@ -18,4 +18,5 @@ public class AppDbContext : DbContext, IAppDbContext
     public virtual DbSet<Entity> Entities { get; set; }
     public virtual DbSet<EntityOwner> EntityOwners { get; set; }
     public virtual DbSet<Event> Events { get; set; }
+    public DbSet<Subscription> Subscriptions { get; set; }
 }
