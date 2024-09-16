@@ -18,7 +18,6 @@ public class SharedDatabaseFixture: IDisposable, IAsyncLifetime
 
     public void Dispose()
     {
-        throw new NotImplementedException();
     }
 
     public async Task InitializeAsync()

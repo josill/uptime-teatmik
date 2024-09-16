@@ -1,5 +1,4 @@
 using System.Net;
-using System.Net.Http.Json;
 using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 using UptimeTeatmik.Tests.Infrastructure.Tests.Abstractions;
 using Xunit.Abstractions;
@@ -14,18 +13,19 @@ public class FetchBusinessesTests(IntegrationTestWebAppFactory factory, ITestOut
     {
         // Arrange
         var date = new DateTime(2000, 6, 30);
-        var request = new UpdateBusinessesQuery(date);
+        var isoDate = date.ToString("o");
 
         // Act
-        var updateResponse = await HttpClient.PostAsJsonAsync("v3/auth/register", request);
+        // var updateResponse = await HttpClient.PostAsJsonAsync($"v1/businesses/update", request);
+        var updateResponse = await HttpClient.GetAsync($"v1/businesses/updates?date={isoDate}");
 
         // Assert
+        var updateResponseBody = await updateResponse.Content.ReadAsStringAsync();
+        var updateResponseData = Newtonsoft.Json.JsonConvert.DeserializeObject<UpdateBusinessesResult>(updateResponseBody);
         updateResponse.StatusCode.Should().Be(HttpStatusCode.OK);
         
-        var updateResponseBody = await updateResponse.Content.ReadAsStringAsync();
-        var updateResponseData = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UpdateBusinessesResult>>(updateResponseBody);
-
+        testOutputHelper.WriteLine(updateResponseBody);
         Assert.NotNull(updateResponseData);
-        Assert.Equal(162, updateResponseData.Count);
+        Assert.Equal(162, updateResponseData.AmountOfBusinessesUpdated);
     }
 }
