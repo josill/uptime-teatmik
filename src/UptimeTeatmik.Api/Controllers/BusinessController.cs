@@ -58,7 +58,7 @@ public class BusinessController(ISender mediator) : ApiController
         var result = await mediator.Send(query);
         
         return result.Match(
-            aRes => Ok(aRes),
+            Ok,
             HandleErrors
         );
     }
