@@ -11,10 +11,11 @@ public class GetBusinessQueryHandler(IAppDbContext dbContext) : IRequestHandler<
 {
     public async Task<ErrorOr<DetailedBusinessResult?>> Handle(GetBusinessQuery request, CancellationToken cancellationToken)
     {
+        Console.WriteLine(request.BusinessId);
         var business = await dbContext.Entities
             .Where(e => e.Id == request.BusinessId)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);
-        if (business == null) return Errors.Business.DuplicateEmail(request.BusinessId);
+        if (business == null) return Errors.Business.BusinessNotFound(request.BusinessId);
 
         var owners = await dbContext.EntityOwners
             .Where(o => o.OwnedId == request.BusinessId)

@@ -5,17 +5,16 @@ using UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
 using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
 using UptimeTeatmik.Contracts.Business;
-using UptimeTeatmik.Domain.Enums;
 
 namespace UptimeTeatmik.Api.Controllers;
 
 [Route("/v1/businesses")]
 public class BusinessController(ISender mediator) : ApiController
 {
-    [HttpGet("{businessId}")]
-    public async Task<IActionResult> GetBusiness(GetBusinessRequest request)
+    [HttpGet("{businessId:guid}")]
+    public async Task<IActionResult> GetBusiness(Guid businessId)
     {
-        var query = new GetBusinessQuery(request.BusinessId);
+        var query = new GetBusinessQuery(businessId);
         var result = await mediator.Send(query);
         
         return result.Match(

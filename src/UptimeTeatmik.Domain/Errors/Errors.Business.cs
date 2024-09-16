@@ -5,7 +5,7 @@ public static partial class Errors
 {
     public static class Business
     {
-        public static Error DuplicateEmail(Guid businessId) =>
+        public static Error BusinessNotFound(Guid businessId) =>
             Error.NotFound($"Business with id: {businessId} not found");
 
         public static Error FailureGettingBusiness(string businessCode) =>
