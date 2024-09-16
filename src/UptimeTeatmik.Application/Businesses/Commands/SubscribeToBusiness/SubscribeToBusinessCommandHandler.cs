@@ -16,7 +16,9 @@ public class SubscribeToBusinessCommandHandler(IAppDbContext dbContext, IBusines
         if (business == null) return Errors.Business.FailureGettingBusiness(command.BusinessCode);
         
         var existingSubscription = await dbContext.Subscriptions
-            .FirstOrDefaultAsync(s => s.SubscribedBusinessId == business.Id, cancellationToken: cancellationToken);
+            .FirstOrDefaultAsync(s => s.SubscribedBusinessId == business.Id
+                && s.SubscribersEmail == command.SubscribersEmail
+                , cancellationToken: cancellationToken);
         if (existingSubscription == null)
         {
             var subscription = new Subscription()

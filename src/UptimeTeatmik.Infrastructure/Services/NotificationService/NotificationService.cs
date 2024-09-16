@@ -68,7 +68,7 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
     private async Task<List<Subscription>> GetSubscribersAsync(Event @event)
     {
         return await dbContext.Subscriptions
-            .Where(s => s.SubscribedBusinessId == @event.EntityId
+            .Where(s => s.SubscribedBusinessId == @event.EntityId 
                         && (s.EventTypes.Contains(@event.Type)
                             || @event.UpdateParameters.Any(p => s.UpdateParameters.Contains(p))))
             .ToListAsync();
