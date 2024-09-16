@@ -4,6 +4,7 @@ using UptimeTeatmik.Application.Businesses.Commands.SubscribeToBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
 using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
+using UptimeTeatmik.Domain.Enums;
 
 namespace UptimeTeatmik.Api.Controllers;
 
@@ -47,9 +48,9 @@ public class BusinessController(ISender mediator) : ApiController
     }
 
     [HttpPost]
-    public async Task<IActionResult> SubscribeToBusiness(string businessCode, string subscribersEmail)
+    public async Task<IActionResult> SubscribeToBusiness(string businessCode, string subscribersEmail, List<EventType>? eventTypes = null, List<string>? updateParameters = null)
     {
-        var query = new SubscribeToBusinessCommand(businessCode, subscribersEmail);
+        var query = new SubscribeToBusinessCommand(businessCode, subscribersEmail, eventTypes, updateParameters);
         var result = await mediator.Send(query);
         
         return result.Match(

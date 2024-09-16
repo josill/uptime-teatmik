@@ -15,5 +15,19 @@ public class SubscribeToBusinessCommandValidator : AbstractValidator<SubscribeTo
             .WithMessage("SubscribersEmail is required")
             .EmailAddress()
             .WithMessage("SubscribersEmail is not a valid email address");
+
+        RuleFor(x => x.UpdateParameters)
+            .NotEmpty()
+            .WithMessage("UpdateParameters can't be an empty list")
+            .When(x => x.UpdateParameters != null);
+        
+        RuleFor(x => x.EventTypes)
+            .NotEmpty()
+            .WithMessage("EventTypes can't be an empty list")
+            .When(x => x.EventTypes != null);
+
+        RuleFor(x => new { x.UpdateParameters, x.EventTypes })
+            .Must(x => x.UpdateParameters != null || x.EventTypes != null)
+            .WithMessage("At least one of UpdateParameters or EventTypes must be provided");
     }
 }
