@@ -23,7 +23,10 @@ public class IntegrationTestWebAppFactory(SharedDatabaseFixture dbFixture) : Web
                 {
                     o.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName);
                 }));
+            
+            var sp = services.BuildServiceProvider();
         });
+        
     }
     
 }

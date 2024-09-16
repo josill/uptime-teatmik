@@ -29,6 +29,11 @@ public class SharedDatabaseFixture: IDisposable, IAsyncLifetime
             .UseNpgsql(DbContainer.GetConnectionString(), o =>
                 o.MigrationsAssembly(typeof(AppDbContext).Assembly.FullName));
         
+        await using (var context = new AppDbContext(optionsBuilder.Options))
+        {
+            await context.Database.MigrateAsync();
+        }
+        
         await using (var connection = new NpgsqlConnection(DbContainer.GetConnectionString()))
         {
             await connection.OpenAsync();
@@ -38,12 +43,6 @@ public class SharedDatabaseFixture: IDisposable, IAsyncLifetime
                 DbAdapter = DbAdapter.Postgres
             });
         }
-        
-        await using (var context = new AppDbContext(optionsBuilder.Options))
-        {
-            await context.Database.MigrateAsync();
-        }
-
     }
 
     public async Task DisposeAsync()

@@ -6,6 +6,6 @@ namespace UptimeTeatmik.Tests.Infrastructure.Tests.Abstractions;
 public class IntegrationTestBase(IntegrationTestWebAppFactory factory, ITestOutputHelper testOutputHelper)
     : IClassFixture<IntegrationTestWebAppFactory>
 {
-    protected HttpClient HttpClient = factory.CreateClient();
+    protected readonly HttpClient HttpClient = factory.CreateClient();
     protected readonly ITestOutputHelper TestOutputHelper = testOutputHelper;
 }
