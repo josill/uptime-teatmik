@@ -65,16 +65,13 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
     {
         return await dbContext.Subscriptions
             .Where(s => s.SubscribedBusinessId == @event.EntityId
-            && s.EventType == @event.Type)
+                        && (s.EventType == @event.Type
+                            || @event.UpdateParameters.Any(p => s.UpdateParameters.Contains(p))))
             .ToListAsync();
-
-        // matchingEventsQuery
-        //     .Where(s => s.EventType == @event.Type
-        //                 || s.UpdateParameters == @event.UpdatedParameters);
     }
 
     private async Task SendEmailAsync(string email)
     {
-        Console.WriteLine("TODO: send email to the subscriber");
+        Console.WriteLine($"TODO: send email to the subscriber with {email}");
     }
 }
