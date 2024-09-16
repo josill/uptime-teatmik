@@ -1,3 +1,5 @@
+using Hangfire;
+using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Domain.Enums;
 using UptimeTeatmik.Domain.Models;
@@ -6,27 +8,31 @@ namespace UptimeTeatmik.Infrastructure.Services.NotificationService;
 
 public class NotificationService(IAppDbContext dbContext) : INotificationService
 {
-    Task INotificationService.CreateNotificationAsync(EventType eventType, string comment)
+    public async Task CreateNotificationAsync(EventType eventType, string comment)
     {
-        return SaveNotificationAsync(eventType, comment);
+        var @event = await SaveNotificationAsync(eventType, comment);
+        await NotifySubscribersAsync(@event);
     }
 
-    public Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId)
+    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId)
     {
-        return SaveNotificationAsync(eventType, comment, entityId);
+        var @event = await SaveNotificationAsync(eventType, comment, entityId);
+        await NotifySubscribersAsync(@event);
     }
 
-    public Task CreateNotificationAsync(EventType eventType, string comment, string businessCode)
+    public async Task CreateNotificationAsync(EventType eventType, string comment, string businessCode)
     {
-        return SaveNotificationAsync(eventType, comment, businessCode: businessCode);
+        var @event = await SaveNotificationAsync(eventType, comment, businessCode: businessCode);
+        await NotifySubscribersAsync(@event);
     }
 
-    public Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId, string businessCode)
+    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId, string businessCode)
     {
-        return SaveNotificationAsync(eventType, comment, entityId, businessCode);
+        var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode);
+        await NotifySubscribersAsync(@event);
     }
-
-    private async Task SaveNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null)
+    
+    private async Task<Event> SaveNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null)
     {
         var @event = new Event
         {
@@ -38,11 +44,33 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
         
         dbContext.Events.Add(@event);
         await dbContext.SaveChangesAsync();
+
+        return @event;
     } 
 
-    public Task NotifySubscribersAsync(Event @event)
+    private async Task NotifySubscribersAsync(Event @event)
     {
-        Console.WriteLine("TODO: Implement NotifySubscribers method");
-        return Task.FromResult(0);
+        var subscribers = await GetSubscribersAsync(@event);
+        foreach (var subscriber in subscribers)
+        {
+            BackgroundJob.Enqueue(() => SendEmailAsync(subscriber.SubscribersEmail));
+        }
+    }
+
+    private async Task<List<Subscription>> GetSubscribersAsync(Event @event)
+    {
+        return await dbContext.Subscriptions
+            .Where(s => s.SubscribedBusinessId == @event.EntityId
+            && s.EventType == @event.Type)
+            .ToListAsync();
+
+        // matchingEventsQuery
+        //     .Where(s => s.EventType == @event.Type
+        //                 || s.UpdateParameters == @event.UpdatedParameters);
+    }
+
+    private async Task SendEmailAsync(string email)
+    {
+        Console.WriteLine("TODO: send email to the subscriber");
     }
 }
