@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using UptimeTeatmik.Application.Businesses.Commands.SubscribeToBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
 using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
@@ -41,6 +42,18 @@ public class BusinessController(ISender mediator) : ApiController
 
         return result.Match(
             Ok,
+            HandleErrors
+        );
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> SubscribeToBusiness(string businessCode, string subscribersEmail)
+    {
+        var query = new SubscribeToBusinessCommand(businessCode, subscribersEmail);
+        var result = await mediator.Send(query);
+        
+        return result.Match(
+            aRes => Ok(aRes),
             HandleErrors
         );
     }

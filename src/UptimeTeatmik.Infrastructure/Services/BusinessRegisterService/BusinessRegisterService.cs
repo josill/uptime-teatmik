@@ -47,7 +47,7 @@ public class BusinessRegisterService(
         return businessCodes;
     }
 
-    public Task UpdateBusinessesAsync(List<string> businessCodes)
+    public async Task UpdateBusinessesAsync(List<string> businessCodes)
     {
         foreach (var businessCode in businessCodes)
         {
@@ -61,21 +61,19 @@ public class BusinessRegisterService(
                     notificationService.CreateNotificationAsync(EventType.UpdateFailed, ex.Message, businessCode));
             }
         }
-
-        return Task.CompletedTask;
     }
 
-    public async Task UpdateBusinessAsync(string businessCode)
+    public async Task<Entity?> UpdateBusinessAsync(string businessCode)
     {
         var body = businessRegisterBodyGenerator.GenerateDetailDataUrlXmlBody(businessCode);
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
+        Entity? entity = null;
 
         try
         {
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
             var existingEntity = await GetExistingOwner(businessCode);
-            
-            Entity entity;
+
             var wasUpdated = false;
             var wasCreated = false;
             if (existingEntity != null)
@@ -91,6 +89,7 @@ public class BusinessRegisterService(
                 entity = newEntity;
                 dbContext.Entities.Add(newEntity);
             }
+
             await dbContext.SaveChangesAsync();
 
             if (wasCreated || wasUpdated)
@@ -102,7 +101,7 @@ public class BusinessRegisterService(
                 BackgroundJob.Enqueue(() =>
                     notificationService.CreateNotificationAsync(eventType, comment, entity.Id, businessCode));
             }
-            
+
             await UpdateBusinessRelatedPersons(responseContent, entity);
         }
         catch (Exception ex)
@@ -110,6 +109,8 @@ public class BusinessRegisterService(
             BackgroundJob.Enqueue(() =>
                 notificationService.CreateNotificationAsync(EventType.UpdateFailed, ex.Message, businessCode));
         }
+
+        return entity;
     }
     
     private async Task UpdateBusinessRelatedPersons(string responseContent, Entity owned)

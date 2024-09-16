@@ -9,7 +9,7 @@ public class UpdateBusinessesQueryHandler(IBusinessRegisterService businessRegis
     public async Task<ErrorOr<UpdateBusinessesResult>> Handle(UpdateBusinessesQuery query, CancellationToken cancellationToken)
     {
         var updatedBusinesses = await businessRegisterService.FetchUpdatedBusinessCodesAsync(query.Date);
-        await businessRegisterService.UpdateBusinessesAsync(updatedBusinesses);
+        await businessRegisterService.UpdateBusinessesAsync(updatedBusinesses); 
         
         return new UpdateBusinessesResult() { AmountOfBusinessesUpdated = updatedBusinesses.Count};
     }
