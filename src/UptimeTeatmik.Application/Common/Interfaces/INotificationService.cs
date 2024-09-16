@@ -1,5 +1,4 @@
 using UptimeTeatmik.Domain.Enums;
-using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Application.Common.Interfaces;
 

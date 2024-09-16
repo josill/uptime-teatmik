@@ -34,12 +34,16 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
     
     private async Task<Event> SaveNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null)
     {
+        var id = entityId ?? await dbContext.Entities
+            .Where(e => e.BusinessOrPersonalCode == businessCode)
+            .Select(e => e.Id)
+            .FirstOrDefaultAsync();
+        
         var @event = new Event
         {
             Type = eventType,
             Comment = comment,
-            EntityId = entityId,
-            BusinessCode = businessCode
+            EntityId = id,
         };
         
         dbContext.Events.Add(@event);
