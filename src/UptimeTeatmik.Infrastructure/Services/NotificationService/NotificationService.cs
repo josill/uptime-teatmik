@@ -65,7 +65,7 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
     {
         return await dbContext.Subscriptions
             .Where(s => s.SubscribedBusinessId == @event.EntityId
-                        && (s.EventType == @event.Type
+                        && (s.EventTypes.Contains(@event.Type)
                             || @event.UpdateParameters.Any(p => s.UpdateParameters.Contains(p))))
             .ToListAsync();
     }

@@ -18,8 +18,8 @@ public class SubscribeToBusinessCommandHandler(IAppDbContext dbContext, IBusines
         {
             SubscribedBusinessId = business.Id,
             SubscribersEmail = command.SubscribersEmail,
-            // EventType = command.EventType,
-            // UpdateParameters = command.UpdateParameters,
+            EventTypes = command.EventTypes ?? [],
+            UpdateParameters = command.UpdateParameters ?? [],
         };
         
         // TODO: Check for existing subscription or create one 
