@@ -4,6 +4,7 @@ using UptimeTeatmik.Application.Businesses.Commands.SubscribeToBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.GetBusiness;
 using UptimeTeatmik.Application.Businesses.Queries.SearchForBusinesses;
 using UptimeTeatmik.Application.Businesses.Queries.UpdatesBusinesses;
+using UptimeTeatmik.Contracts.Business;
 using UptimeTeatmik.Domain.Enums;
 
 namespace UptimeTeatmik.Api.Controllers;
@@ -12,9 +13,9 @@ namespace UptimeTeatmik.Api.Controllers;
 public class BusinessController(ISender mediator) : ApiController
 {
     [HttpGet("{businessId}")]
-    public async Task<IActionResult> GetBusiness(Guid businessId)
+    public async Task<IActionResult> GetBusiness(GetBusinessRequest request)
     {
-        var query = new GetBusinessQuery(businessId);
+        var query = new GetBusinessQuery(request.BusinessId);
         var result = await mediator.Send(query);
         
         return result.Match(
@@ -47,10 +48,14 @@ public class BusinessController(ISender mediator) : ApiController
         );
     }
 
-    [HttpPost]
-    public async Task<IActionResult> SubscribeToBusiness(string businessCode, string subscribersEmail, List<EventType>? eventTypes = null, List<string>? updateParameters = null)
+    [HttpPost("subscribe")]
+    public async Task<IActionResult> SubscribeToBusiness(SubscribeToBusinessRequest request)
     {
-        var query = new SubscribeToBusinessCommand(businessCode, subscribersEmail, eventTypes, updateParameters);
+        var query = new SubscribeToBusinessCommand(
+            request.BusinessCode,
+            request.SubscribersEmail,
+            request.EventTypes,
+            request.UpdateParameters);
         var result = await mediator.Send(query);
         
         return result.Match(
