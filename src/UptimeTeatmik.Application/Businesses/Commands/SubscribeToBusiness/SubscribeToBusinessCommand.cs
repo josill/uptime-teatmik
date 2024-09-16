@@ -1,7 +1,6 @@
 using ErrorOr;
 using MediatR;
 using UptimeTeatmik.Domain.Enums;
-using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Application.Businesses.Commands.SubscribeToBusiness;
 

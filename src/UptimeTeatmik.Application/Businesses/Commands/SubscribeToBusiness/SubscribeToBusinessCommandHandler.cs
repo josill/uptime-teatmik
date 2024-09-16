@@ -15,7 +15,6 @@ public class SubscribeToBusinessCommandHandler(IAppDbContext dbContext, IBusines
         var business = await businessRegisterService.UpdateBusinessAsync(command.BusinessCode);
         if (business == null) return Errors.Business.FailureGettingBusiness(command.BusinessCode);
         
-        // TODO: Check for existing subscription or create one 
         var existingSubscription = await dbContext.Subscriptions
             .FirstOrDefaultAsync(s => s.SubscribedBusinessId == business.Id, cancellationToken: cancellationToken);
         if (existingSubscription == null)

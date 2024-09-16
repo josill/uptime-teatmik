@@ -48,7 +48,7 @@ public class BusinessController(ISender mediator) : ApiController
     }
 
     [HttpPost("subscribe")]
-    public async Task<IActionResult> SubscribeToBusiness(SubscribeToBusinessRequest request)
+    public async Task<IActionResult> SubscribeToBusiness([FromBody] SubscribeToBusinessRequest request)
     {
         var query = new SubscribeToBusinessCommand(
             request.BusinessCode,
