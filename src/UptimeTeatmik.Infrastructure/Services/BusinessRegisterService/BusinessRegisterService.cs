@@ -11,7 +11,12 @@ using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 
-public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpClient, IOptions<BusinessRegisterSettings> settings, IBusinessRegisterBodyGenerator businessRegisterBodyGenerator) : IBusinessRegisterService
+public class BusinessRegisterService(
+    IAppDbContext dbContext, 
+    HttpClient httpClient, 
+    IOptions<BusinessRegisterSettings> settings, 
+    IBusinessRegisterBodyGenerator businessRegisterBodyGenerator,
+    INotificationService notificationService) : IBusinessRegisterService
 {
     public async Task RunBusinessUpdateJob()
     {
@@ -99,6 +104,7 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                 entity = newEntity;
                 dbContext.Entities.Add(newEntity);
             }
+            await dbContext.SaveChangesAsync();
 
             if (wasCreated || wasUpdated)
             {
@@ -110,9 +116,9 @@ public class BusinessRegisterService(IAppDbContext dbContext, HttpClient httpCli
                     Type = wasUpdated ? EventType.Updated : EventType.Created,
                     Comment = wasUpdated ? $"Business {entity.BusinessOrLastName} data changed" : $"Business {entity.BusinessOrLastName} created"
                 };
-                dbContext.Events.Add(@event);
+                
+                BackgroundJob.Enqueue(() => notificationService.NotifySubscribers(@event));
             }
-            await dbContext.SaveChangesAsync();
             
             await UpdateBusinessRelatedPersons(responseContent, entity);
         }

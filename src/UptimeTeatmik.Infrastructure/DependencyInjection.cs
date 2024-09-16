@@ -9,6 +9,7 @@ using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure.Persistence;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
+using UptimeTeatmik.Infrastructure.Services.NotificationService;
 
 namespace UptimeTeatmik.Infrastructure;
 
@@ -21,9 +22,10 @@ public static class DependencyInjection
     {
         services
             .AddHttpClient()
-            .AddBusinessRegisterService(builderConfiguration)
             .AddPersistence(builderConfiguration)
-            .AddHangfireServices(builderConfiguration);
+            .AddHangfireServices(builderConfiguration)
+            .AddBusinessRegisterService(builderConfiguration)
+            .AddNotificationService();
         
         return services;
     }
@@ -101,6 +103,12 @@ public static class DependencyInjection
         services.AddScoped<IBusinessRegisterService, BusinessRegisterService>();
         services.AddScoped<IBusinessRegisterBodyGenerator, BusinessRegisterBodyGenerator>();
 
+        return services;
+    }
+
+    public static IServiceCollection AddNotificationService(this IServiceCollection services)
+    {
+        services.AddScoped<INotificationService, NotificationService>();
         return services;
     }
 }
