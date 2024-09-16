@@ -41,14 +41,9 @@ public class BusinessRegisterService(
             businessCodes.Add(businessCode);
         }
 
-        var @event = new Event()
-        {
-            Type = EventType.Created,
-            Comment = $"Fetched {businessCodes.Count} updated businesses on {date:dd/MM/yyyy}"
-        };
-        dbContext.Events.Add(@event);
-        await dbContext.SaveChangesAsync();
-        
+        BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(EventType.Created,
+            $"Started fetching {businessCodes.Count} updated businesses on {date:dd/MM/yyyy HH:mm:ss}"));
+
         return businessCodes;
     }
 
@@ -58,20 +53,12 @@ public class BusinessRegisterService(
         {
             try
             {
-                // Ideally we would use a Batch job here, but it is a paid feature
-                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode));
+                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode)); // Ideally we would use a Batch job here, but it is a paid feature
             }
             catch (Exception ex)
             {
-                var @event = new Event()
-                {
-                    Id = Guid.NewGuid(),
-                    BusinessCode = businessCode,
-                    Type = EventType.UpdateFailed,
-                    Comment = ex.Message
-                };
-                dbContext.Events.Add(@event);
-                dbContext.SaveChangesAsync();
+                BackgroundJob.Enqueue(() =>
+                    notificationService.CreateNotificationAsync(EventType.UpdateFailed, ex.Message, businessCode));
             }
         }
 
@@ -108,31 +95,20 @@ public class BusinessRegisterService(
 
             if (wasCreated || wasUpdated)
             {
-                var @event = new Event()
-                {
-                    Id = Guid.NewGuid(),
-                    EntityId = entity.Id,
-                    BusinessCode = businessCode,
-                    Type = wasUpdated ? EventType.Updated : EventType.Created,
-                    Comment = wasUpdated ? $"Business {entity.BusinessOrLastName} data changed" : $"Business {entity.BusinessOrLastName} created"
-                };
-                
-                BackgroundJob.Enqueue(() => notificationService.NotifySubscribers(@event));
+                var eventType = wasUpdated ? EventType.Updated : EventType.Created;
+                var comment = wasUpdated
+                    ? $"Business {entity.BusinessOrLastName} data changed"
+                    : $"Business {entity.BusinessOrLastName} created";
+                BackgroundJob.Enqueue(() =>
+                    notificationService.CreateNotificationAsync(eventType, comment, entity.Id, businessCode));
             }
             
             await UpdateBusinessRelatedPersons(responseContent, entity);
         }
         catch (Exception ex)
         {
-            var @event = new Event()
-            {
-                Id = Guid.NewGuid(),
-                BusinessCode = businessCode,
-                Type = EventType.UpdateFailed,
-                Comment = ex.Message
-            };
-            dbContext.Events.Add(@event);
-            await dbContext.SaveChangesAsync();
+            BackgroundJob.Enqueue(() =>
+                notificationService.CreateNotificationAsync(EventType.UpdateFailed, ex.Message, businessCode));
         }
     }
     
