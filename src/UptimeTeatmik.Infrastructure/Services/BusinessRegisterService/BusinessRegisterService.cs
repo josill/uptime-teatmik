@@ -182,8 +182,18 @@ public class BusinessRegisterService(
         if (oldEntity.EntityType != newEntity.EntityType) oldEntity.EntityType = newEntity.EntityType;
         if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation) oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
 
-        changes.Add("FormattedJson");
+        if (oldEntity.FormattedJson == null || newEntity.FormattedJson == null) return changes;
+        var updatedParams = CheckAndUpdateFormattedJson(oldEntity.FormattedJson, newEntity.FormattedJson);
+        changes.AddRange(updatedParams);
+
         return changes;
+    }
+
+    private static List<string> CheckAndUpdateFormattedJson(string oldJson, string newJson)
+    {
+        
+        
+        return [];
     }
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
