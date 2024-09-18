@@ -1,6 +1,6 @@
 using UptimeTeatmik.Domain.Enums;
 
-namespace UptimeTeatmik.Application.Common.Interfaces;
+namespace UptimeTeatmik.Application.Common.Interfaces.NotificationService;
 
 public interface INotificationService
 {

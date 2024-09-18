@@ -19,7 +19,6 @@ public class BusinessRegisterService(
     HttpClient httpClient, 
     IOptions<BusinessRegisterSettings> settings, 
     IBusinessRegisterBodyGenerator businessRegisterBodyGenerator,
-    IEmailSender emailSender,
     INotificationService notificationService) : IBusinessRegisterService
 {
     public async Task RunBusinessUpdateJob()
@@ -84,9 +83,9 @@ public class BusinessRegisterService(
             var wasCreated = false;
             if (existingEntity != null)
             {
-                updates = CheckForUpdates(existingEntity, parsedEntity);
+                updates = CheckAndUpdate(existingEntity, parsedEntity);
                 entity = existingEntity;
-                dbContext.Entities.Update(existingEntity);
+                if (updates.Count > 0) dbContext.Entities.Update(existingEntity);
             }
             else
             {
@@ -177,30 +176,16 @@ public class BusinessRegisterService(
         return existingOwner;
     }
 
-    private static List<string> CheckForUpdates(Entity oldEntity, ParsedEntity newEntity)
+    private static List<string> CheckAndUpdate(Entity oldEntity, ParsedEntity newEntity)
     {
         List<string> changes = [];
 
-        CheckAndAddIfChanged(oldEntity, newEntity, e => e.BusinessOrLastName, changes);
-        CheckAndAddIfChanged(oldEntity, newEntity, e => e.EntityType, changes);
-        CheckAndAddIfChanged(oldEntity, newEntity, e => e.EntityTypeAbbreviation, changes);
+        if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName) oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
+        if (oldEntity.EntityType != newEntity.EntityType) oldEntity.EntityType = newEntity.EntityType;
+        if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation) oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
 
+        changes.Add("FormattedJson");
         return changes;
-    }
-
-    private static void CheckAndAddIfChanged<T>(
-        Entity oldEntity, 
-        ParsedEntity newEntity, 
-        Expression<Func<ParsedEntity, T>> propertySelector, 
-        List<string> changes)
-    {
-        var property = (PropertyInfo)((MemberExpression)propertySelector.Body).Member;
-        var oldValue = property.GetValue(oldEntity);
-        var newValue = propertySelector.Compile()(newEntity);
-
-        if (Equals(oldValue, newValue)) return;
-        property.SetValue(oldEntity, newValue);
-        changes.Add(property.Name);
     }
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)

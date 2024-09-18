@@ -1,12 +1,13 @@
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Application.Common.Interfaces;
+using UptimeTeatmik.Application.Common.Interfaces.NotificationService;
 using UptimeTeatmik.Domain.Enums;
 using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Infrastructure.Services.NotificationService;
 
-public class NotificationService(IAppDbContext dbContext) : INotificationService
+public class NotificationService(IAppDbContext dbContext, IEmailSender emailSender) : INotificationService
 {
     public async Task CreateNotificationAsync(EventType eventType, string comment)
     {
@@ -61,7 +62,7 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
         var subscribers = await GetSubscribersAsync(@event);
         foreach (var subscriber in subscribers)
         {
-            BackgroundJob.Enqueue(() => SendEmailAsync(subscriber.SubscribersEmail));
+            BackgroundJob.Enqueue(() => SendEmailAsync(subscriber.SubscribersEmail, @event.Comment));
         }
     }
 
@@ -74,8 +75,8 @@ public class NotificationService(IAppDbContext dbContext) : INotificationService
             .ToListAsync();
     }
 
-    private async Task SendEmailAsync(string email)
+    private async Task SendEmailAsync(string email, string body)
     {
-        Console.WriteLine($"TODO: send email to the subscriber with {email}");
+        await emailSender.SendEmailAsync(email, $"New update", body);
     }
 }
