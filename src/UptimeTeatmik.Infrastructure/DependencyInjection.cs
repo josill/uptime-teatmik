@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using Hangfire;
 using Hangfire.PostgreSql;
 using Microsoft.EntityFrameworkCore;
@@ -7,9 +8,11 @@ using Microsoft.Extensions.Options;
 using Npgsql;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
+using UptimeTeatmik.Application.Common.Interfaces.NotificationService;
 using UptimeTeatmik.Infrastructure.Persistence;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure.Services.NotificationService;
+using UptimeTeatmik.Infrastructure.Services.NotificationService.Senders.EmailSender;
 
 namespace UptimeTeatmik.Infrastructure;
 
@@ -24,8 +27,9 @@ public static class DependencyInjection
             .AddHttpClient()
             .AddPersistence(builderConfiguration)
             .AddHangfireServices(builderConfiguration)
-            .AddBusinessRegisterService(builderConfiguration)
-            .AddNotificationService();
+            .AddNotificationService()
+            .AddEmailSender(builderConfiguration)
+            .AddBusinessRegisterService(builderConfiguration);
         
         return services;
     }
@@ -109,6 +113,25 @@ public static class DependencyInjection
     public static IServiceCollection AddNotificationService(this IServiceCollection services)
     {
         services.AddScoped<INotificationService, NotificationService>();
+        return services;
+    }
+
+    public static IServiceCollection AddEmailSender(
+        this IServiceCollection services,
+        IConfiguration builderConfiguration
+    )
+    {
+        var emailSenderSettings = new EmailSenderSettings();
+        builderConfiguration.Bind(EmailSenderSettings.SectionName, emailSenderSettings);
+        services.AddSingleton(emailSenderSettings);
+
+        services.AddTransient<SmtpClient>(sp => new SmtpClient(emailSenderSettings.SmtpHost, emailSenderSettings.SmtpPort)
+        {
+            UseDefaultCredentials = false,
+            EnableSsl = false
+        });
+
+        services.AddTransient<IEmailSender, EmailSender>();
         return services;
     }
 }

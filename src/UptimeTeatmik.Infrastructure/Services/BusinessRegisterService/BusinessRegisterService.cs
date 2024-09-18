@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
+using UptimeTeatmik.Application.Common.Interfaces.NotificationService;
 using UptimeTeatmik.Domain.Enums;
 using UptimeTeatmik.Domain.Models;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
@@ -16,6 +17,7 @@ public class BusinessRegisterService(
     HttpClient httpClient, 
     IOptions<BusinessRegisterSettings> settings, 
     IBusinessRegisterBodyGenerator businessRegisterBodyGenerator,
+    IEmailSender emailSender,
     INotificationService notificationService) : IBusinessRegisterService
 {
     public async Task RunBusinessUpdateJob()
@@ -32,20 +34,20 @@ public class BusinessRegisterService(
         var doc = XDocument.Parse(responseContent);
         var ns = "{http://arireg.x-road.eu/producer/}";
         List<string> businessCodes = [];
-
+        
         foreach (var element in doc.Descendants(ns + "ettevotja_muudatused"))
         {
             var businessCode = element.Element(ns + "ariregistri_kood")?.Value;
-
+        
             if (businessCode == null) continue;
             businessCodes.Add(businessCode);
         }
-
+        
         var timeNow = new DateTime();
         BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(EventType.Created,
             $"Started fetching {businessCodes.Count} updated businesses for the date: {date:dd/MM/yyyy}, at {timeNow:dd/MM/yyyy HH:mm:ss}"));
         await UpdateBusinessesAsync(businessCodes);
-
+        
         return businessCodes;
     }
 
