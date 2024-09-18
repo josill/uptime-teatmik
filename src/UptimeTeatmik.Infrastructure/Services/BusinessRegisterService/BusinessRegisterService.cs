@@ -41,8 +41,9 @@ public class BusinessRegisterService(
             businessCodes.Add(businessCode);
         }
 
+        var timeNow = new DateTime();
         BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(EventType.Created,
-            $"Started fetching {businessCodes.Count} updated businesses on {date:dd/MM/yyyy HH:mm:ss}"));
+            $"Started fetching {businessCodes.Count} updated businesses on {timeNow:dd/MM/yyyy HH:mm:ss}"));
         await UpdateBusinessesAsync(businessCodes);
         
         return businessCodes;
