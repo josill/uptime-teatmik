@@ -1,5 +1,3 @@
-using System.Linq.Expressions;
-using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using Hangfire;
@@ -108,7 +106,7 @@ public class BusinessRegisterService(
                     : $"Business {entity.BusinessOrLastName} created";
 
                 BackgroundJob.Enqueue(() =>
-                    notificationService.CreateNotificationAsync(eventType, comment, entity.Id, businessCode));
+                    notificationService.CreateNotificationAsync(eventType, comment, entity.Id, businessCode, updates));
             }
 
             await UpdateBusinessRelatedPersons(responseContent, entity);

@@ -32,8 +32,15 @@ public class NotificationService(IAppDbContext dbContext, IEmailSender emailSend
         var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode);
         await NotifySubscribersAsync(@event);
     }
-    
-    private async Task<Event> SaveNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null)
+
+    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId, string businessCode,
+        List<string>? updatedParams)
+    {
+        var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode, updatedParams: updatedParams);
+        await NotifySubscribersAsync(@event);    
+    }
+
+    private async Task<Event> SaveNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
     {
         Guid? id = null;
         if (businessCode != null || entityId != null)
@@ -49,6 +56,7 @@ public class NotificationService(IAppDbContext dbContext, IEmailSender emailSend
             Type = eventType,
             Comment = comment,
             EntityId = id,
+            UpdateParameters = updatedParams ?? []
         };
         
         dbContext.Events.Add(@event);
