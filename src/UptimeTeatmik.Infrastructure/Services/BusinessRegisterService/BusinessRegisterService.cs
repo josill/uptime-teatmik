@@ -45,7 +45,7 @@ public class BusinessRegisterService(
         BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(EventType.Created,
             $"Started fetching {businessCodes.Count} updated businesses for the date: {date:dd/MM/yyyy}, at {timeNow:dd/MM/yyyy HH:mm:ss}"));
         await UpdateBusinessesAsync(businessCodes);
-        
+
         return businessCodes;
     }
 
@@ -171,6 +171,7 @@ public class BusinessRegisterService(
 
     private static bool UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
     {
+        return true;
         var hasChanged = false;
 
         if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName)
