@@ -23,8 +23,6 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         var persistenceSettings = new PersistenceSettings();
         configuration.Bind(PersistenceSettings.SectionName, persistenceSettings);
         
-        Console.WriteLine(persistenceSettings);
-        
         var host = Environment.GetEnvironmentVariable("DB_HOST") ?? persistenceSettings.Host;
         var port = Environment.GetEnvironmentVariable("DB_PORT") ?? persistenceSettings.Port.ToString();
         var username = Environment.GetEnvironmentVariable("DB_USER") ?? persistenceSettings.Username;

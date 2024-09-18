@@ -3,7 +3,6 @@ namespace UptimeTeatmik.Infrastructure.Services.NotificationService.Senders.Emai
 public class EmailSenderSettings
 {
     public const string SectionName = "EmailSenderSettings";
-    public string SmtpHost { get; set; } = null!;
-    public int SmtpPort { get; set; }
+    public string EmailApiUrl { get; set; } = null!;
     public string FromAddress { get; set; } = null!;
 }

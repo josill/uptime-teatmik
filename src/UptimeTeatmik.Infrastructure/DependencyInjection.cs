@@ -125,12 +125,6 @@ public static class DependencyInjection
         builderConfiguration.Bind(EmailSenderSettings.SectionName, emailSenderSettings);
         services.AddSingleton(emailSenderSettings);
 
-        services.AddTransient<SmtpClient>(sp => new SmtpClient(emailSenderSettings.SmtpHost, emailSenderSettings.SmtpPort)
-        {
-            UseDefaultCredentials = false,
-            EnableSsl = false
-        });
-
         services.AddTransient<IEmailSender, EmailSender>();
         return services;
     }

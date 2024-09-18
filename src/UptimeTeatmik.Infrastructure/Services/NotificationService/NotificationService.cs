@@ -75,7 +75,7 @@ public class NotificationService(IAppDbContext dbContext, IEmailSender emailSend
             .ToListAsync();
     }
 
-    private async Task SendEmailAsync(string email, string body)
+    public async Task SendEmailAsync(string email, string body)
     {
         await emailSender.SendEmailAsync(email, $"New update", body);
     }

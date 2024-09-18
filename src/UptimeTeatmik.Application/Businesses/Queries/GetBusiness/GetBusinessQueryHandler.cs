@@ -11,7 +11,6 @@ public class GetBusinessQueryHandler(IAppDbContext dbContext) : IRequestHandler<
 {
     public async Task<ErrorOr<DetailedBusinessResult?>> Handle(GetBusinessQuery request, CancellationToken cancellationToken)
     {
-        Console.WriteLine(request.BusinessId);
         var business = await dbContext.Entities
             .Where(e => e.Id == request.BusinessId)
             .FirstOrDefaultAsync(cancellationToken: cancellationToken);

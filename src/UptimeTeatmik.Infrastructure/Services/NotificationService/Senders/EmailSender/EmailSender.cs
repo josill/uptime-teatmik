@@ -1,30 +1,34 @@
-using System.Net.Mail;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using UptimeTeatmik.Application.Common.Interfaces.NotificationService;
 
 namespace UptimeTeatmik.Infrastructure.Services.NotificationService.Senders.EmailSender;
 
-public class EmailSender(SmtpClient smtpClient, EmailSenderSettings emailSenderSettings) : IEmailSender
+public class EmailSender(HttpClient httpClient, EmailSenderSettings settings) : IEmailSender
 {
     public async Task SendEmailAsync(string to, string subject, string body, bool isBodyHtml = false)
     {
-        var mailMessage = new MailMessage
+        var emailRequest = new
         {
-            // TODO: inject email options
-            From = new MailAddress(emailSenderSettings.FromAddress),
+            To = new[] { new { Email = to } },
             Subject = subject,
-            Body = body,
-            IsBodyHtml = isBodyHtml
+            HTML = isBodyHtml ? body : null,
+            Text = !isBodyHtml ? body : null,
+            From = new { Email = settings.FromAddress },
         };
-        mailMessage.To.Add(to);
-        
+
+        var json = JsonSerializer.Serialize(emailRequest);
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
         try
         {
-            // TODO: inject smtp client
-            await smtpClient.SendMailAsync(mailMessage);
+            var response = await httpClient.PostAsync(settings.EmailApiUrl, content);
+            response.EnsureSuccessStatusCode();
         }
-        catch (Exception ex)
+        catch (HttpRequestException ex)
         {
-            Console.WriteLine($"An error occurred: {ex.Message}");
+            Console.WriteLine($"An error occurred while sending the email: {ex.Message}");
         }
     }
 }
