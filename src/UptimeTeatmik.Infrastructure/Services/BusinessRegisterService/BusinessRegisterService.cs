@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using System.Reflection;
 using System.Text;
 using System.Xml.Linq;
 using Hangfire;
@@ -78,11 +80,11 @@ public class BusinessRegisterService(
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
             var existingEntity = await GetExistingOwner(businessCode);
 
-            var wasUpdated = false;
+            List<string> updates = [];
             var wasCreated = false;
             if (existingEntity != null)
             {
-                wasUpdated = UpdateExistingEntity(existingEntity, parsedEntity);
+                updates = CheckForUpdates(existingEntity, parsedEntity);
                 entity = existingEntity;
                 dbContext.Entities.Update(existingEntity);
             }
@@ -96,12 +98,16 @@ public class BusinessRegisterService(
 
             await dbContext.SaveChangesAsync();
 
+            var wasUpdated = updates.Count > 0;
             if (wasCreated || wasUpdated)
             {
                 var eventType = wasUpdated ? EventType.Updated : EventType.Created;
+                var changesDetail = $"Changes: {string.Join(", ", updates)}"; 
+
                 var comment = wasUpdated
-                    ? $"Business {entity.BusinessOrLastName} data changed"
+                    ? $"Business {entity.BusinessOrLastName} data changed. {changesDetail}"
                     : $"Business {entity.BusinessOrLastName} created";
+
                 BackgroundJob.Enqueue(() =>
                     notificationService.CreateNotificationAsync(eventType, comment, entity.Id, businessCode));
             }
@@ -171,36 +177,30 @@ public class BusinessRegisterService(
         return existingOwner;
     }
 
-    private static bool UpdateExistingEntity(Entity oldEntity, ParsedEntity newEntity)
+    private static List<string> CheckForUpdates(Entity oldEntity, ParsedEntity newEntity)
     {
-        return true;
-        var hasChanged = false;
+        List<string> changes = [];
 
-        if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName)
-        {
-            oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
-            hasChanged = true;
-        }
+        CheckAndAddIfChanged(oldEntity, newEntity, e => e.BusinessOrLastName, changes);
+        CheckAndAddIfChanged(oldEntity, newEntity, e => e.EntityType, changes);
+        CheckAndAddIfChanged(oldEntity, newEntity, e => e.EntityTypeAbbreviation, changes);
 
-        if (oldEntity.FormattedJson != newEntity.FormattedJson)
-        {
-            oldEntity.FormattedJson = newEntity.FormattedJson;
-            hasChanged = true;
-        }
+        return changes;
+    }
 
-        if (oldEntity.EntityType != newEntity.EntityType)
-        {
-            oldEntity.EntityType = newEntity.EntityType;
-            hasChanged = true;
-        }
+    private static void CheckAndAddIfChanged<T>(
+        Entity oldEntity, 
+        ParsedEntity newEntity, 
+        Expression<Func<ParsedEntity, T>> propertySelector, 
+        List<string> changes)
+    {
+        var property = (PropertyInfo)((MemberExpression)propertySelector.Body).Member;
+        var oldValue = property.GetValue(oldEntity);
+        var newValue = propertySelector.Compile()(newEntity);
 
-        if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation)
-        {
-            oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
-            hasChanged = true;
-        }
-
-        return hasChanged;
+        if (Equals(oldValue, newValue)) return;
+        property.SetValue(oldEntity, newValue);
+        changes.Add(property.Name);
     }
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
