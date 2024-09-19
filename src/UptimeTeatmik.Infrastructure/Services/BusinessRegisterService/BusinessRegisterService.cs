@@ -106,6 +106,7 @@ public class BusinessRegisterService(
         if (wasCreated || wasUpdated)
         {
             var eventType = wasUpdated ? EventType.Updated : EventType.Created;
+            // TODO: also log what changed -> "{oldBusinessName} changed to {newBusinessName}"
             var changesDetail = $"Changes: {string.Join(", ", updates)}"; 
             var comment = wasUpdated
                 ? $"Business {entity.BusinessOrLastName} data changed. {changesDetail}"
