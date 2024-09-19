@@ -70,39 +70,7 @@ public class BusinessRegisterService(
         try
         {
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
-            var existingEntity = await GetExistingOwner(businessCode);
-
-            List<string> updates = [];
-            var wasCreated = false;
-            if (existingEntity != null)
-            {
-                updates = CheckAndUpdate(existingEntity, parsedEntity);
-                entity = existingEntity;
-                if (updates.Count > 0) dbContext.Entities.Update(existingEntity);
-            }
-            else
-            {
-                wasCreated = true;
-                var newEntity = MapParsedEntityToEntity(parsedEntity);
-                entity = newEntity;
-                dbContext.Entities.Add(newEntity);
-            }
-
-            await dbContext.SaveChangesAsync();
-
-            var wasUpdated = updates.Count > 0;
-            if (wasCreated || wasUpdated)
-            {
-                var eventType = wasUpdated ? EventType.Updated : EventType.Created;
-                var changesDetail = $"Changes: {string.Join(", ", updates)}"; 
-
-                var comment = wasUpdated
-                    ? $"Business {entity.BusinessOrLastName} data changed. {changesDetail}"
-                    : $"Business {entity.BusinessOrLastName} created";
-
-                notificationService.CreateNotificationJob(eventType, comment, entity.Id, businessCode, updates);
-            }
-
+            entity = await ProcessEntityUpdate(parsedEntity, businessCode);
             await UpdateBusinessRelatedPersons(responseContent, entity);
         }
         catch (Exception ex)
@@ -110,6 +78,41 @@ public class BusinessRegisterService(
             notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode: businessCode);
         }
 
+        return entity;
+    }
+    
+    private async Task<Entity> ProcessEntityUpdate(ParsedEntity parsedEntity, string businessCode)
+    {
+        var entity = await GetExistingOwner(businessCode);
+        List<string> updates = [];
+        var wasCreated = false;
+ 
+        if (entity != null)
+        {
+            updates = CheckAndUpdate(entity, parsedEntity);
+            if (updates.Count > 0) dbContext.Entities.Update(entity);
+        }
+        else
+        {
+            entity = MapParsedEntityToEntity(parsedEntity);
+            dbContext.Entities.Add(entity);
+            wasCreated = true;
+        }
+ 
+        await dbContext.SaveChangesAsync();
+
+        var wasUpdated = updates.Count > 0;
+        if (wasCreated || wasUpdated)
+        {
+            var eventType = wasUpdated ? EventType.Updated : EventType.Created;
+            var changesDetail = $"Changes: {string.Join(", ", updates)}"; 
+            var comment = wasUpdated
+                ? $"Business {entity.BusinessOrLastName} data changed. {changesDetail}"
+                : $"Business {entity.BusinessOrLastName} created";
+        
+            notificationService.CreateNotificationJob(eventType, comment, entity.Id, businessCode, updates);
+        }
+ 
         return entity;
     }
     

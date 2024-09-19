@@ -82,30 +82,37 @@ public class BusinessRegisterServiceRefactor(
  
     private async Task<Entity?> ProcessEntityUpdate(ParsedEntity parsedEntity, string businessCode)
     {
-        var existingEntity = await GetExistingOwner(businessCode);
-        List<string> updates = new();
+        var entity = await GetExistingOwner(businessCode);
+        List<string> updates = [];
+        var wasCreated = false;
  
-        if (existingEntity != null)
+        if (entity != null)
         {
-            updates = CheckAndUpdate(existingEntity, parsedEntity);
-            if (updates.Count > 0) dbContext.Entities.Update(existingEntity);
+            updates = CheckAndUpdate(entity, parsedEntity);
+            if (updates.Count > 0) dbContext.Entities.Update(entity);
         }
         else
         {
-            var newEntity = MapParsedEntityToEntity(parsedEntity);
-            dbContext.Entities.Add(newEntity);
-            existingEntity = newEntity;
+            entity = MapParsedEntityToEntity(parsedEntity);
+            dbContext.Entities.Add(entity);
+            wasCreated = true;
         }
  
         await dbContext.SaveChangesAsync();
- 
-        if (existingEntity != null)
+
+        var wasUpdated = updates.Count > 0;
+        if (wasCreated || wasUpdated)
         {
-            var eventType = updates.Count > 0 ? EventType.Updated : EventType.Created;
-            LogNotification(eventType, $"Business {existingEntity.BusinessOrLastName} updated", businessCode, updates);
+            var eventType = wasUpdated ? EventType.Updated : EventType.Created;
+            var changesDetail = $"Changes: {string.Join(", ", updates)}"; 
+            var comment = wasUpdated
+                ? $"Business {entity.BusinessOrLastName} data changed. {changesDetail}"
+                : $"Business {entity.BusinessOrLastName} created";
+        
+            notificationService.CreateNotificationJob(eventType, comment, entity.Id, businessCode, updates);
         }
  
-        return existingEntity;
+        return entity;
     }
  
     private async Task UpdateBusinessRelatedPersons(string responseContent, Entity owned)
