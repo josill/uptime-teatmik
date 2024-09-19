@@ -149,29 +149,23 @@ public class BusinessRegisterService(
     {
         var content = new StringContent(body, Encoding.UTF8, "text/xml");
         var response = await httpClient.PostAsync(endPointUrl, content);
-        
         response.EnsureSuccessStatusCode();
         
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return responseContent;
+        return await response.Content.ReadAsStringAsync();
     }
 
     private async Task<EntityOwner?> GetExistingRelation(Guid ownedId, string ownerBusinessOrLastName)
     {
-        var existingRelation = await dbContext.EntityOwners
+        return await dbContext.EntityOwners
             .Include(eo => eo.Owner)
             .Where(eo => eo.OwnedId == ownedId && eo.Owner.BusinessOrLastName == ownerBusinessOrLastName)
             .FirstOrDefaultAsync();
-
-        return existingRelation;
     }
 
     private async Task<Entity?> GetExistingOwner(string businessOrPersonalCode)
     {
-        var existingOwner = await dbContext.Entities
+        return await dbContext.Entities
             .FirstOrDefaultAsync(e => e.BusinessOrPersonalCode == businessOrPersonalCode.Trim());
-
-        return existingOwner;
     }
 
     private static List<string> CheckAndUpdate(Entity oldEntity, ParsedEntity newEntity)
@@ -198,7 +192,7 @@ public class BusinessRegisterService(
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
     {
-        var newEntity = new Entity()
+        return new Entity()
         {
             Id = Guid.NewGuid(),
             // BusinessOrPersonalCode = businessCode,
@@ -209,13 +203,11 @@ public class BusinessRegisterService(
             FormattedJson = parsedEntity.FormattedJson,
             UniqueCode = parsedEntity.UniqueCode
         };
-
-        return newEntity;
     }
 
     private static Entity MapParsedRelatedEntityToEntity(ParsedRelatedEntity parsedEntity)
     {
-        var newEntity = new Entity()
+        return new Entity()
         {
             Id = Guid.NewGuid(),
             FirstName = parsedEntity.FirstName,
@@ -225,7 +217,5 @@ public class BusinessRegisterService(
             EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
             UniqueCode = parsedEntity.UniqueCode
         };
-
-        return newEntity;
     }
 }
