@@ -3,6 +3,7 @@ using System.Xml.Linq;
 using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using UptimeTeatmik.Application.Common.Interfaces;
 using UptimeTeatmik.Application.Common.Interfaces.BusinessRegisterService;
 using UptimeTeatmik.Application.Common.Interfaces.NotificationService;
@@ -177,17 +178,18 @@ public class BusinessRegisterService(
         if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation) oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
 
         if (oldEntity.FormattedJson == null || newEntity.FormattedJson == null) return changes;
-        var updatedParams = CheckAndUpdateFormattedJson(oldEntity.FormattedJson, newEntity.FormattedJson);
-        changes.AddRange(updatedParams);
+        var didJsonChange = CheckAndUpdateFormattedJson(oldEntity.FormattedJson, newEntity.FormattedJson);
+        if (didJsonChange) changes.Add("FormattedJson");
 
         return changes;
     }
 
-    private static List<string> CheckAndUpdateFormattedJson(string oldJson, string newJson)
+    private static bool CheckAndUpdateFormattedJson(string oldJsonString, string newJsonString)
     {
-        
-        
-        return [];
+        var oldJson = JToken.Parse(oldJsonString);
+        var newJson = JToken.Parse(newJsonString);
+
+        return JToken.DeepEquals(oldJson, newJson);
     }
 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
@@ -195,7 +197,6 @@ public class BusinessRegisterService(
         return new Entity()
         {
             Id = Guid.NewGuid(),
-            // BusinessOrPersonalCode = businessCode,
             BusinessOrPersonalCode = parsedEntity.PersonalOrBusinessCode,
             BusinessOrLastName = parsedEntity.BusinessOrLastName,
             EntityType = parsedEntity.EntityType,
