@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
+using Microsoft.EntityFrameworkCore;
 using UptimeTeatmik.Tests.Businesses.Common;
 using Xunit.Abstractions;
 
@@ -30,6 +31,22 @@ public class BusinessRegisterServiceTests : IClassFixture<TestFactory>
 
         // Assert
         Assert.True(jobCreated != null, "Expected background job was not created");
+    }
+
+    [Fact]
+    public async Task CreateEntity_ShouldSucceed_WhenEntityDoesNotExist()
+    {
+        // Arrange
+        var testBusinessCode = "10308733";
+
+        // Act
+        var createdEntity = await _testFactory.BusinessRegisterService.UpdateBusinessAsync(testBusinessCode);
+        _testOutputHelper.WriteLine($"CreatedEntity: {createdEntity}");
+        var entity = await _testFactory.DbContext.Entities
+                .FirstOrDefaultAsync(e => e.BusinessOrPersonalCode == testBusinessCode);
+        
+        // Assert
+        Assert.NotNull(entity);
     }
     
     public async Task<Job?> CheckIfJobWasCreated()

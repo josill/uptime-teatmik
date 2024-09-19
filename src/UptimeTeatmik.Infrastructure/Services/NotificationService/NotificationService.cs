@@ -14,7 +14,7 @@ public class NotificationService(IAppDbContext dbContext, IBackgroundJobClient b
         backgroundJobClient.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode, updatedParams));
     }
 
-    private async Task CreateNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
+    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
     {
         var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode, updatedParams);
         await NotifySubscribersAsync(@event);

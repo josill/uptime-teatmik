@@ -17,7 +17,6 @@ public class TestFactory : IDisposable, IAsyncDisposable
     public IBackgroundJobClient BackgroundJobClient { get; }
     public AppDbContext DbContext { get; }
     public BusinessRegisterService BusinessRegisterService { get; }
-    public Mock<HttpMessageHandler> HttpMessageHandlerMock { get; }
 
     public TestFactory()
     {
@@ -38,8 +37,7 @@ public class TestFactory : IDisposable, IAsyncDisposable
         DbContext = new AppDbContext(options);
 
         // Set up mocked HttpClient
-        HttpMessageHandlerMock = new Mock<HttpMessageHandler>();
-        var httpClient = new HttpClient(HttpMessageHandlerMock.Object);
+        var httpClient = new HttpClient();
 
         // Set up services
         var businessRegisterSettings = new BusinessRegisterSettings();
