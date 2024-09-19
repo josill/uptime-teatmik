@@ -9,58 +9,15 @@ namespace UptimeTeatmik.Infrastructure.Services.NotificationService;
 
 public class NotificationService(IAppDbContext dbContext, IEmailSender emailSender) : INotificationService
 {
-    public void CreateNotificationJob(EventType eventType, string comment)
-    {
-        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment));
-    }
-    public void CreateNotificationJob(EventType eventType, string comment, Guid entityId)
-    {
-        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId));
-    }
-    public void CreateNotificationJob(EventType eventType, string comment, string businessCode)
-    {
-        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, businessCode));
-    }
-    public void CreateNotificationJob(EventType eventType, string comment, Guid entityId, string businessCode)
-    {
-        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode));
-    }
-
-    public void CreateNotificationJob(EventType eventType, string comment, Guid entityId, string businessCode,
-        List<string> updatedParams)
+    public void CreateNotificationJob(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
     {
         BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode, updatedParams));
     }
-    
-    public async Task CreateNotificationAsync(EventType eventType, string comment)
-    {
-        var @event = await SaveNotificationAsync(eventType, comment);
-        await NotifySubscribersAsync(@event);
-    }
 
-    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId)
+    private async Task CreateNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
     {
-        var @event = await SaveNotificationAsync(eventType, comment, entityId);
+        var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode, updatedParams);
         await NotifySubscribersAsync(@event);
-    }
-
-    public async Task CreateNotificationAsync(EventType eventType, string comment, string businessCode)
-    {
-        var @event = await SaveNotificationAsync(eventType, comment, businessCode: businessCode);
-        await NotifySubscribersAsync(@event);
-    }
-
-    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId, string businessCode)
-    {
-        var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode);
-        await NotifySubscribersAsync(@event);
-    }
-
-    public async Task CreateNotificationAsync(EventType eventType, string comment, Guid entityId, string businessCode,
-        List<string>? updatedParams)
-    {
-        var @event = await SaveNotificationAsync(eventType, comment, entityId, businessCode, updatedParams: updatedParams);
-        await NotifySubscribersAsync(@event);    
     }
 
     private async Task<Event> SaveNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)

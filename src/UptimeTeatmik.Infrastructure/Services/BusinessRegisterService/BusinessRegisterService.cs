@@ -58,7 +58,7 @@ public class BusinessRegisterService(
             }
             catch (Exception ex)
             {
-                notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode);
+                notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode: businessCode);
             }
         }
     }
@@ -109,7 +109,7 @@ public class BusinessRegisterService(
         }
         catch (Exception ex)
         {
-            notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode);
+            notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode: businessCode);
         }
 
         return entity;
