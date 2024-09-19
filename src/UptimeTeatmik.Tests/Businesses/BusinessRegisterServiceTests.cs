@@ -34,14 +34,13 @@ public class BusinessRegisterServiceTests : IClassFixture<TestFactory>
     }
 
     [Fact]
-    public async Task CreateEntity_ShouldSucceed_WhenEntityDoesNotExist()
+    public async Task CreateEntity_ShouldCreate_WhenEntityDoesNotExist()
     {
         // Arrange
         var testBusinessCode = "10308733";
 
         // Act
         var createdEntity = await _testFactory.BusinessRegisterService.UpdateBusinessAsync(testBusinessCode);
-        _testOutputHelper.WriteLine($"CreatedEntity: {createdEntity}");
         var entity = await _testFactory.DbContext.Entities
                 .FirstOrDefaultAsync(e => e.BusinessOrPersonalCode == testBusinessCode);
         
@@ -49,7 +48,28 @@ public class BusinessRegisterServiceTests : IClassFixture<TestFactory>
         Assert.NotNull(entity);
     }
     
-    public async Task<Job?> CheckIfJobWasCreated()
+    [Fact]
+    public async Task CreateEntity_ShouldNotUpdate_WhenCreatingAgain()
+    {
+        // Arrange
+        var testBusinessCode = "10308733";
+
+        // Act
+        var createdEntity = await _testFactory.BusinessRegisterService.UpdateBusinessAsync(testBusinessCode);
+        var createdEntityAgain = await _testFactory.BusinessRegisterService.UpdateBusinessAsync(testBusinessCode);
+        var entity = await _testFactory.DbContext.Entities
+            .FirstOrDefaultAsync(e => e.BusinessOrPersonalCode == testBusinessCode);
+        
+        // Assert
+        Assert.NotNull(entity);
+        Assert.NotNull(createdEntity);
+        Assert.NotNull(createdEntity.FormattedJson);
+        Assert.NotNull(createdEntityAgain);
+        Assert.NotNull(createdEntityAgain.FormattedJson);
+        Assert.Equal(createdEntity.FormattedJson, entity.FormattedJson);
+    }
+
+    private async Task<Job?> CheckIfJobWasCreated()
     {
         var jobs = JobStorage.Current.GetMonitoringApi();
         var enqueuedCount = jobs.EnqueuedJobs(EnqueuedState.DefaultQueue, 0, 1);
