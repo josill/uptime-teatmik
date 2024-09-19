@@ -14,7 +14,7 @@ namespace UptimeTeatmik.Tests.Businesses.Common;
 public class TestFactory : IDisposable, IAsyncDisposable
 {
     public IConfiguration Configuration { get; }
-    public Mock<IBackgroundJobClient> BackgroundJobClientMock { get; }
+    public IBackgroundJobClient BackgroundJobClient { get; }
     public AppDbContext DbContext { get; }
     public BusinessRegisterService BusinessRegisterService { get; }
     public Mock<HttpMessageHandler> HttpMessageHandlerMock { get; }
@@ -29,7 +29,7 @@ public class TestFactory : IDisposable, IAsyncDisposable
 
         // Initialize Hangfire with MemoryStorage
         GlobalConfiguration.Configuration.UseMemoryStorage();
-        BackgroundJobClientMock = new Mock<IBackgroundJobClient>();
+        BackgroundJobClient = new BackgroundJobClient(JobStorage.Current);
 
         // Set up in-memory database
         var options = new DbContextOptionsBuilder<AppDbContext>()
@@ -50,14 +50,15 @@ public class TestFactory : IDisposable, IAsyncDisposable
         Configuration.GetSection(EmailSenderSettings.SectionName).Bind(emailSettings);
         
         var businessRegisterBodyGenerator = new BusinessRegisterBodyGenerator(businessRegisterSettingsOptions);
-        var notificationService = new NotificationService(DbContext, new EmailSender(httpClient, emailSettings));
+        var notificationService = new NotificationService(DbContext, BackgroundJobClient, new EmailSender(httpClient, emailSettings));
             
         BusinessRegisterService = new BusinessRegisterService(
             DbContext, 
             httpClient, 
             businessRegisterSettingsOptions, 
             businessRegisterBodyGenerator, 
-            notificationService
+            notificationService,
+            BackgroundJobClient
         );
     }
 

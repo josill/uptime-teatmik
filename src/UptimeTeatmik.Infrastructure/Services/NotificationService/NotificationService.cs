@@ -7,11 +7,11 @@ using UptimeTeatmik.Domain.Models;
 
 namespace UptimeTeatmik.Infrastructure.Services.NotificationService;
 
-public class NotificationService(IAppDbContext dbContext, IEmailSender emailSender) : INotificationService
+public class NotificationService(IAppDbContext dbContext, IBackgroundJobClient backgroundJobClient, IEmailSender emailSender) : INotificationService
 {
     public void CreateNotificationJob(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
     {
-        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode, updatedParams));
+        backgroundJobClient.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode, updatedParams));
     }
 
     private async Task CreateNotificationAsync(EventType eventType, string comment, Guid? entityId = null, string? businessCode = null, List<string>? updatedParams = null)
@@ -50,7 +50,7 @@ public class NotificationService(IAppDbContext dbContext, IEmailSender emailSend
         var subscribers = await GetSubscribersAsync(@event);
         foreach (var subscriber in subscribers)
         {
-            BackgroundJob.Enqueue(() => SendEmailAsync(subscriber.SubscribersEmail, @event.Comment));
+            backgroundJobClient.Enqueue(() => SendEmailAsync(subscriber.SubscribersEmail, @event.Comment));
         }
     }
 

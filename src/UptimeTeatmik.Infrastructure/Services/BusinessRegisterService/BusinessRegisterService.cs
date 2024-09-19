@@ -18,7 +18,8 @@ public class BusinessRegisterService(
     HttpClient httpClient, 
     IOptions<BusinessRegisterSettings> settings, 
     IBusinessRegisterBodyGenerator businessRegisterBodyGenerator,
-    INotificationService notificationService) : IBusinessRegisterService
+    INotificationService notificationService,
+    IBackgroundJobClient backgroundJobClient) : IBusinessRegisterService
 {
     public async Task RunBusinessUpdateJob()
     {
@@ -51,7 +52,7 @@ public class BusinessRegisterService(
         {
             try
             {
-                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode));
+                backgroundJobClient.Enqueue(() => UpdateBusinessAsync(businessCode));
             }
             catch (Exception ex)
             {
