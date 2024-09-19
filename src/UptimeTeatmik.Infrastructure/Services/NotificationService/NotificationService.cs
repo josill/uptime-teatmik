@@ -9,6 +9,29 @@ namespace UptimeTeatmik.Infrastructure.Services.NotificationService;
 
 public class NotificationService(IAppDbContext dbContext, IEmailSender emailSender) : INotificationService
 {
+    public void CreateNotificationJob(EventType eventType, string comment)
+    {
+        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment));
+    }
+    public void CreateNotificationJob(EventType eventType, string comment, Guid entityId)
+    {
+        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId));
+    }
+    public void CreateNotificationJob(EventType eventType, string comment, string businessCode)
+    {
+        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, businessCode));
+    }
+    public void CreateNotificationJob(EventType eventType, string comment, Guid entityId, string businessCode)
+    {
+        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode));
+    }
+
+    public void CreateNotificationJob(EventType eventType, string comment, Guid entityId, string businessCode,
+        List<string> updatedParams)
+    {
+        BackgroundJob.Enqueue(() => CreateNotificationAsync(eventType, comment, entityId, businessCode, updatedParams));
+    }
+    
     public async Task CreateNotificationAsync(EventType eventType, string comment)
     {
         var @event = await SaveNotificationAsync(eventType, comment);
@@ -87,4 +110,5 @@ public class NotificationService(IAppDbContext dbContext, IEmailSender emailSend
     {
         await emailSender.SendEmailAsync(email, $"New update", body);
     }
+
 }

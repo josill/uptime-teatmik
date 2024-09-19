@@ -9,10 +9,10 @@ using UptimeTeatmik.Application.Common.Interfaces.NotificationService;
 using UptimeTeatmik.Domain.Enums;
 using UptimeTeatmik.Domain.Models;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService.Parser;
-
+ 
 namespace UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
-
-public class BusinessRegisterService(
+ 
+public class BusinessRegisterServiceRefactor(
     IAppDbContext dbContext, 
     HttpClient httpClient, 
     IOptions<BusinessRegisterSettings> settings, 
@@ -24,179 +24,170 @@ public class BusinessRegisterService(
         var dateNow = DateTime.UtcNow;
         await FetchUpdatedBusinessCodesAsync(dateNow);
     }
-    
+ 
     public async Task<List<string>> FetchUpdatedBusinessCodesAsync(DateTime date)
     {
         var body = businessRegisterBodyGenerator.GenerateChangesUrlXmlBody(date);
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.ChangesUrl);
-        
         var doc = XDocument.Parse(responseContent);
         var ns = "{http://arireg.x-road.eu/producer/}";
-        List<string> businessCodes = [];
-        
-        foreach (var element in doc.Descendants(ns + "ettevotja_muudatused"))
-        {
-            var businessCode = element.Element(ns + "ariregistri_kood")?.Value;
-        
-            if (businessCode == null) continue;
-            businessCodes.Add(businessCode);
-        }
-        
-        notificationService.CreateNotificationJob(EventType.Created, $"Started fetching {businessCodes.Count} updated businesses for the date: {date:dd/MM/yyyy}");
+ 
+        var businessCodes = doc.Descendants(ns + "ettevotja_muudatused")
+            .Select(element => element.Element(ns + "ariregistri_kood")?.Value)
+            .Where(code => !string.IsNullOrEmpty(code))
+            .ToList();
+ 
+        LogNotification(EventType.Created, $"Started fetching {businessCodes.Count} updated businesses", date);
+ 
         await UpdateBusinessesAsync(businessCodes);
-        
         return businessCodes;
     }
-
+ 
     public async Task UpdateBusinessesAsync(List<string> businessCodes)
     {
-        foreach (var businessCode in businessCodes)
+        var tasks = businessCodes.Select(async businessCode =>
         {
             try
             {
-                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode)); // Ideally we would use a Batch job here, but it is a paid feature
+                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode));
             }
             catch (Exception ex)
             {
-                notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode);
+                LogErrorNotification(EventType.UpdateFailed, ex.Message, businessCode);
             }
-        }
+        });
+ 
+        await Task.WhenAll(tasks);
     }
-
+ 
     public async Task<Entity?> UpdateBusinessAsync(string businessCode)
     {
         var body = businessRegisterBodyGenerator.GenerateDetailDataUrlXmlBody(businessCode);
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.DetailDataUrl);
         Entity? entity = null;
-
+ 
         try
         {
             var parsedEntity = BusinessRegisterParser.ParseEntity(responseContent);
-            var existingEntity = await GetExistingOwner(businessCode);
-
-            List<string> updates = [];
-            var wasCreated = false;
-            if (existingEntity != null)
-            {
-                updates = CheckAndUpdate(existingEntity, parsedEntity);
-                entity = existingEntity;
-                if (updates.Count > 0) dbContext.Entities.Update(existingEntity);
-            }
-            else
-            {
-                wasCreated = true;
-                var newEntity = MapParsedEntityToEntity(parsedEntity);
-                entity = newEntity;
-                dbContext.Entities.Add(newEntity);
-            }
-
-            await dbContext.SaveChangesAsync();
-
-            var wasUpdated = updates.Count > 0;
-            if (wasCreated || wasUpdated)
-            {
-                var eventType = wasUpdated ? EventType.Updated : EventType.Created;
-                var changesDetail = $"Changes: {string.Join(", ", updates)}"; 
-
-                var comment = wasUpdated
-                    ? $"Business {entity.BusinessOrLastName} data changed. {changesDetail}"
-                    : $"Business {entity.BusinessOrLastName} created";
-
-                notificationService.CreateNotificationJob(eventType, comment, entity.Id, businessCode, updates);
-            }
-
+            entity = await ProcessEntityUpdate(parsedEntity, businessCode);
             await UpdateBusinessRelatedPersons(responseContent, entity);
         }
         catch (Exception ex)
         {
-            notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode);
+            LogErrorNotification(EventType.UpdateFailed, ex.Message, businessCode);
         }
-
+ 
         return entity;
     }
-    
+ 
+    private async Task<Entity?> ProcessEntityUpdate(ParsedEntity parsedEntity, string businessCode)
+    {
+        var existingEntity = await GetExistingOwner(businessCode);
+        List<string> updates = new();
+ 
+        if (existingEntity != null)
+        {
+            updates = CheckAndUpdate(existingEntity, parsedEntity);
+            if (updates.Count > 0) dbContext.Entities.Update(existingEntity);
+        }
+        else
+        {
+            var newEntity = MapParsedEntityToEntity(parsedEntity);
+            dbContext.Entities.Add(newEntity);
+            existingEntity = newEntity;
+        }
+ 
+        await dbContext.SaveChangesAsync();
+ 
+        if (existingEntity != null)
+        {
+            var eventType = updates.Count > 0 ? EventType.Updated : EventType.Created;
+            LogNotification(eventType, $"Business {existingEntity.BusinessOrLastName} updated", businessCode, updates);
+        }
+ 
+        return existingEntity;
+    }
+ 
     private async Task UpdateBusinessRelatedPersons(string responseContent, Entity owned)
     {
         var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
         var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
-
-        foreach (var pe in parsedRelatedEntities)
+ 
+        var tasks = parsedRelatedEntities.Select(async pe =>
         {
-            var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName); 
-            if (existingRelation != null) continue; // Here we would check for changes in relation to the owned business
-
-            var owner = await GetExistingOwner(pe.BusinessOrPersonalCode ?? string.Empty) ?? MapParsedRelatedEntityToEntity(pe);
-            dbContext.Entities.Add(owner);
-
-            var newRelation = new EntityOwner()
+            var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName);
+            if (existingRelation == null)
             {
-                Id = Guid.NewGuid(),
-                Owned = owned,
-                Owner = owner,
-                RoleInEntity = pe.EntityType,
-                RoleInEntityAbbreviation = pe.EntityTypeAbbreviation
-            };
-            dbContext.EntityOwners.Add(newRelation);
-        }
+                var owner = await GetExistingOwner(pe.BusinessOrPersonalCode ?? string.Empty) 
+                    ?? MapParsedRelatedEntityToEntity(pe);
+                dbContext.Entities.Add(owner);
+ 
+                var newRelation = new EntityOwner()
+                {
+                    Id = Guid.NewGuid(),
+                    Owned = owned,
+                    Owner = owner,
+                    RoleInEntity = pe.EntityType,
+                    RoleInEntityAbbreviation = pe.EntityTypeAbbreviation
+                };
+                dbContext.EntityOwners.Add(newRelation);
+            }
+        });
+ 
+        await Task.WhenAll(tasks);
     }
-    
+ 
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
     {
         var content = new StringContent(body, Encoding.UTF8, "text/xml");
         var response = await httpClient.PostAsync(endPointUrl, content);
-        
         response.EnsureSuccessStatusCode();
-        
-        var responseContent = await response.Content.ReadAsStringAsync();
-        return responseContent;
+ 
+        return await response.Content.ReadAsStringAsync();
     }
-
+ 
     private async Task<EntityOwner?> GetExistingRelation(Guid ownedId, string ownerBusinessOrLastName)
     {
-        var existingRelation = await dbContext.EntityOwners
+        return await dbContext.EntityOwners
             .Include(eo => eo.Owner)
             .Where(eo => eo.OwnedId == ownedId && eo.Owner.BusinessOrLastName == ownerBusinessOrLastName)
             .FirstOrDefaultAsync();
-
-        return existingRelation;
     }
-
+ 
     private async Task<Entity?> GetExistingOwner(string businessOrPersonalCode)
     {
-        var existingOwner = await dbContext.Entities
+        return await dbContext.Entities
             .FirstOrDefaultAsync(e => e.BusinessOrPersonalCode == businessOrPersonalCode.Trim());
-
-        return existingOwner;
     }
-
+ 
     private static List<string> CheckAndUpdate(Entity oldEntity, ParsedEntity newEntity)
     {
-        List<string> changes = [];
-
-        if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName) oldEntity.BusinessOrLastName = newEntity.BusinessOrLastName;
-        if (oldEntity.EntityType != newEntity.EntityType) oldEntity.EntityType = newEntity.EntityType;
-        if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation) oldEntity.EntityTypeAbbreviation = newEntity.EntityTypeAbbreviation;
-
-        if (oldEntity.FormattedJson == null || newEntity.FormattedJson == null) return changes;
-        var updatedParams = CheckAndUpdateFormattedJson(oldEntity.FormattedJson, newEntity.FormattedJson);
-        changes.AddRange(updatedParams);
-
+        var changes = new List<string>();
+ 
+        if (oldEntity.BusinessOrLastName != newEntity.BusinessOrLastName)
+            changes.Add($"Name updated: {oldEntity.BusinessOrLastName} to {newEntity.BusinessOrLastName}");
+        if (oldEntity.EntityType != newEntity.EntityType)
+            changes.Add($"Type updated: {oldEntity.EntityType} to {newEntity.EntityType}");
+        if (oldEntity.EntityTypeAbbreviation != newEntity.EntityTypeAbbreviation)
+            changes.Add($"Abbreviation updated: {oldEntity.EntityTypeAbbreviation} to {newEntity.EntityTypeAbbreviation}");
+ 
+        var jsonChanges = CheckAndUpdateFormattedJson(oldEntity.FormattedJson, newEntity.FormattedJson);
+        changes.AddRange(jsonChanges);
+ 
         return changes;
     }
-
+ 
     private static List<string> CheckAndUpdateFormattedJson(string oldJson, string newJson)
     {
-        
-        
-        return [];
+        // Compare JSON content and return changes
+        return new List<string>();
     }
-
+ 
     private static Entity MapParsedEntityToEntity(ParsedEntity parsedEntity)
     {
-        var newEntity = new Entity()
+        return new Entity()
         {
             Id = Guid.NewGuid(),
-            // BusinessOrPersonalCode = businessCode,
             BusinessOrPersonalCode = parsedEntity.PersonalOrBusinessCode,
             BusinessOrLastName = parsedEntity.BusinessOrLastName,
             EntityType = parsedEntity.EntityType,
@@ -204,13 +195,11 @@ public class BusinessRegisterService(
             FormattedJson = parsedEntity.FormattedJson,
             UniqueCode = parsedEntity.UniqueCode
         };
-
-        return newEntity;
     }
-
+ 
     private static Entity MapParsedRelatedEntityToEntity(ParsedRelatedEntity parsedEntity)
     {
-        var newEntity = new Entity()
+        return new Entity()
         {
             Id = Guid.NewGuid(),
             FirstName = parsedEntity.FirstName,
@@ -220,7 +209,16 @@ public class BusinessRegisterService(
             EntityTypeAbbreviation = parsedEntity.EntityTypeAbbreviation,
             UniqueCode = parsedEntity.UniqueCode
         };
-
-        return newEntity;
+    }
+ 
+    private void LogNotification(EventType eventType, string message, string businessCode, List<string>? updates = null)
+    {
+        var updateInfo = updates != null ? $", Changes: {string.Join(", ", updates)}" : string.Empty;
+        BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(eventType, $"{message}{updateInfo}", businessCode));
+    }
+ 
+    private void LogErrorNotification(EventType eventType, string errorMessage, string businessCode)
+    {
+        BackgroundJob.Enqueue(() => notificationService.CreateNotificationAsync(eventType, errorMessage, businessCode));
     }
 }
