@@ -46,6 +46,7 @@
 
   <ItemGroup>
     <PackageVersion Update="FluentAssertions" Version="6.12.1" />
+    <PackageVersion Update="Moq" Version="4.20.69" />
   </ItemGroup>
 
   <ItemGroup>

@@ -9,7 +9,7 @@ namespace UptimeTeatmik.Tests.Infrastructure.Tests.Business;
 public class FetchBusinessesTests(IntegrationTestWebAppFactory factory, ITestOutputHelper testOutputHelper) : IntegrationTestBase(factory, testOutputHelper)
 {
     [Fact]
-    public async Task Should_FetchUpdatedBusinesses_WhenDateIsValid()
+    public async Task FetchUpdatedBusinesses_ShouldSucceed_WhenDateIsValid()
     {
         // Arrange
         var date = new DateTime(2000, 6, 30);
@@ -28,7 +28,7 @@ public class FetchBusinessesTests(IntegrationTestWebAppFactory factory, ITestOut
     }
     
     [Fact]
-    public async Task ShouldNot_FetchUpdatedBusinesses_WhenDateIsMissing()
+    public async Task FetchUpdatedBusinesses_ShouldReturnBadRequest_WhenDateIsMissing()
     {
         // Arrange
 
@@ -40,7 +40,7 @@ public class FetchBusinessesTests(IntegrationTestWebAppFactory factory, ITestOut
     }
     
     [Fact]
-    public async Task ShouldNot_FetchUpdatedBusinesses_WhenDateIsInvalid()
+    public async Task FetchUpdatedBusinesses_ShouldReturnBadRequest_WhenDateIsInvalid()
     {
         // Arrange
         var date = new DateTime(2000, 6, 30);

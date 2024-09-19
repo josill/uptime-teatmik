@@ -3,6 +3,7 @@ using Hangfire.MemoryStorage;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Moq;
 using UptimeTeatmik.Infrastructure.Persistence;
 using UptimeTeatmik.Infrastructure.Services.BusinessRegisterService;
 using UptimeTeatmik.Infrastructure.Services.NotificationService;
@@ -10,12 +11,13 @@ using UptimeTeatmik.Infrastructure.Services.NotificationService.Senders.EmailSen
 
 namespace UptimeTeatmik.Tests.Businesses.Common;
 
-public class TestFactory : IDisposable
+public class TestFactory : IDisposable, IAsyncDisposable
 {
     public IConfiguration Configuration { get; }
-    private readonly BackgroundJobServer _backgroundJobServer;
-    public AppDbContext Context { get; }
+    public Mock<IBackgroundJobClient> BackgroundJobClientMock { get; }
+    public AppDbContext DbContext { get; }
     public BusinessRegisterService BusinessRegisterService { get; }
+    public Mock<HttpMessageHandler> HttpMessageHandlerMock { get; }
 
     public TestFactory()
     {
@@ -27,17 +29,19 @@ public class TestFactory : IDisposable
 
         // Initialize Hangfire with MemoryStorage
         GlobalConfiguration.Configuration.UseMemoryStorage();
-        _backgroundJobServer = new BackgroundJobServer();
+        BackgroundJobClientMock = new Mock<IBackgroundJobClient>();
 
         // Set up in-memory database
         var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseInMemoryDatabase(databaseName: "TestDatabase")
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Use a unique name for each test run
             .Options;
-        Context = new AppDbContext(options);
+        DbContext = new AppDbContext(options);
+
+        // Set up mocked HttpClient
+        HttpMessageHandlerMock = new Mock<HttpMessageHandler>();
+        var httpClient = new HttpClient(HttpMessageHandlerMock.Object);
 
         // Set up services
-        var httpClient = new HttpClient();
-        
         var businessRegisterSettings = new BusinessRegisterSettings();
         Configuration.GetSection(BusinessRegisterSettings.SectionName).Bind(businessRegisterSettings);
         var businessRegisterSettingsOptions = Options.Create(businessRegisterSettings);
@@ -46,14 +50,24 @@ public class TestFactory : IDisposable
         Configuration.GetSection(EmailSenderSettings.SectionName).Bind(emailSettings);
         
         var businessRegisterBodyGenerator = new BusinessRegisterBodyGenerator(businessRegisterSettingsOptions);
-        var notificationService = new NotificationService(Context, new EmailSender(httpClient, emailSettings));
+        var notificationService = new NotificationService(DbContext, new EmailSender(httpClient, emailSettings));
             
-        BusinessRegisterService = new BusinessRegisterService(Context, httpClient, businessRegisterSettingsOptions, businessRegisterBodyGenerator, notificationService);
+        BusinessRegisterService = new BusinessRegisterService(
+            DbContext, 
+            httpClient, 
+            businessRegisterSettingsOptions, 
+            businessRegisterBodyGenerator, 
+            notificationService
+        );
     }
 
     public void Dispose()
     {
-        _backgroundJobServer?.Dispose();
-        Context?.Dispose();
+        DbContext.Dispose();
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await DbContext.DisposeAsync();
     }
 }
