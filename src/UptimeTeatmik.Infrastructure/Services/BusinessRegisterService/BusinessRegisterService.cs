@@ -120,25 +120,29 @@ public class BusinessRegisterService(
     {
         var relatedEntitiesJson = BusinessRegisterParser.ParseBusinessRelatedEntities(responseContent);
         var parsedRelatedEntities = relatedEntitiesJson.Select(re => new ParsedRelatedEntity(re)).ToList();
-
-        foreach (var pe in parsedRelatedEntities)
+ 
+        var tasks = parsedRelatedEntities.Select(async pe =>
         {
-            var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName); 
-            if (existingRelation != null) continue; // Here we would check for changes in relation to the owned business
-
-            var owner = await GetExistingOwner(pe.BusinessOrPersonalCode ?? string.Empty) ?? MapParsedRelatedEntityToEntity(pe);
-            dbContext.Entities.Add(owner);
-
-            var newRelation = new EntityOwner()
+            var existingRelation = await GetExistingRelation(owned.Id, pe.BusinessOrLastName);
+            if (existingRelation == null)
             {
-                Id = Guid.NewGuid(),
-                Owned = owned,
-                Owner = owner,
-                RoleInEntity = pe.EntityType,
-                RoleInEntityAbbreviation = pe.EntityTypeAbbreviation
-            };
-            dbContext.EntityOwners.Add(newRelation);
-        }
+                var owner = await GetExistingOwner(pe.BusinessOrPersonalCode ?? string.Empty) 
+                            ?? MapParsedRelatedEntityToEntity(pe);
+                dbContext.Entities.Add(owner);
+ 
+                var newRelation = new EntityOwner()
+                {
+                    Id = Guid.NewGuid(),
+                    Owned = owned,
+                    Owner = owner,
+                    RoleInEntity = pe.EntityType,
+                    RoleInEntityAbbreviation = pe.EntityTypeAbbreviation
+                };
+                dbContext.EntityOwners.Add(newRelation);
+            }
+        });
+ 
+        await Task.WhenAll(tasks);
     }
     
     private async Task<string> GetXmlResponseContentAsync(string body, string endPointUrl)
