@@ -29,38 +29,36 @@ public class BusinessRegisterService(
     {
         var body = businessRegisterBodyGenerator.GenerateChangesUrlXmlBody(date);
         var responseContent = await GetXmlResponseContentAsync(body, settings.Value.ChangesUrl);
-        
         var doc = XDocument.Parse(responseContent);
         var ns = "{http://arireg.x-road.eu/producer/}";
-        List<string> businessCodes = [];
         
-        foreach (var element in doc.Descendants(ns + "ettevotja_muudatused"))
-        {
-            var businessCode = element.Element(ns + "ariregistri_kood")?.Value;
-        
-            if (businessCode == null) continue;
-            businessCodes.Add(businessCode);
-        }
+        var businessCodes = doc.Descendants(ns + "ettevotja_muudatused")
+            .Select(element => element.Element(ns + "ariregistri_kood")?.Value)
+            .Where(code => !string.IsNullOrEmpty(code))
+            .Cast<string>()
+            .ToList();
         
         notificationService.CreateNotificationJob(EventType.Created, $"Started fetching {businessCodes.Count} updated businesses for the date: {date:dd/MM/yyyy}");
+
         await UpdateBusinessesAsync(businessCodes);
-        
         return businessCodes;
     }
 
     public async Task UpdateBusinessesAsync(List<string> businessCodes)
     {
-        foreach (var businessCode in businessCodes)
+        var tasks = businessCodes.Select(async businessCode =>
         {
             try
             {
-                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode)); // Ideally we would use a Batch job here, but it is a paid feature
+                BackgroundJob.Enqueue(() => UpdateBusinessAsync(businessCode));
             }
             catch (Exception ex)
             {
                 notificationService.CreateNotificationJob(EventType.UpdateFailed, ex.Message, businessCode: businessCode);
             }
-        }
+        });
+ 
+        await Task.WhenAll(tasks);
     }
 
     public async Task<Entity?> UpdateBusinessAsync(string businessCode)
